@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import AuthModal from "./AuthModal";
 import { apiClient } from '../api/apiClient';
@@ -10,6 +11,9 @@ import userIcon from "../assets/user-svgrepo-com.svg";
 export default function Header() {
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [user, setUser] = useState(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const currentUser = apiClient.getUser();
@@ -29,8 +33,17 @@ export default function Header() {
             }
         });
 
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+
         return () => {
             window.removeEventListener('auth:unauthorized', handleAuthChange);
+            document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
 
@@ -38,12 +51,28 @@ export default function Header() {
         const currentUser = apiClient.getUser();
         setUser(currentUser);
         setIsAuthModalOpen(false);
+        setIsDropdownOpen(false);
     };
 
     const handleLogout = () => {
         apiClient.clearSession();
         setUser(null);
+        setIsDropdownOpen(false);
         window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+        navigate('/');
+    };
+
+    const handleProfileClick = () => {
+        setIsDropdownOpen(false);
+        navigate('/profile');
+    };
+
+    const handleUserClick = () => {
+        if (user) {
+            setIsDropdownOpen(!isDropdownOpen);
+        } else {
+            setIsAuthModalOpen(true);
+        }
     };
 
     const displayName = user ? (user.nickname || user.login) : null;
@@ -58,28 +87,33 @@ export default function Header() {
             />
             
             <header className="header">
-                <div className="header-title-with-logo-block">
+                <div className="header-title-with-logo-block" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
                     <img className="header-logo" src={logo} alt="Логотип" />
                     <p className="header-title">Music Platform</p>
                 </div>
-                <div className="header-user-block">
-                    {user ? (
+                <div className="header-user-block" ref={dropdownRef}>
+                    <div className="user-menu-container">
                         <Button 
                             type="user-login" 
-                            onClick={handleLogout}
+                            onClick={handleUserClick}
+                            className={user ? 'user-login-btn' : ''}
                         >
                             <img className="user-icon" src={userIcon} alt="Иконка пользователя" />
-                            <p>{displayName}</p>
+                            <p>{user ? displayName : 'Войти'}</p>
                         </Button>
-                    ) : (
-                        <Button 
-                            type="user-login" 
-                            onClick={() => setIsAuthModalOpen(true)}
-                        >
-                            <img className="user-icon" src={userIcon} alt="Иконка пользователя" />
-                            <p>Войти</p>
-                        </Button>
-                    )}
+                        
+                        {user && isDropdownOpen && (
+                            <div className="user-dropdown">
+                                <div className="dropdown-item" onClick={handleProfileClick}>
+                                    Профиль
+                                </div>
+                                <div className="dropdown-divider"></div>
+                                <div className="dropdown-item logout" onClick={handleLogout}>
+                                    Выйти
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </header>
         </>

@@ -193,6 +193,12 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
         }
     };
 
+    const generateRandomNickname = () => {
+        const randomNum = Math.floor(Math.random() * 999999) + 1;
+        const paddedNum = String(randomNum).padStart(6, '0');
+        return `user${paddedNum}`;
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         setFieldError("");
@@ -222,10 +228,17 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
             return;
         }
         
+        let finalNickname = nickname.trim();
+        if (!finalNickname) {
+            const randomNum = Math.floor(Math.random() * 999999) + 1;
+            const paddedNum = String(randomNum).padStart(6, '0');
+            finalNickname = `user${paddedNum}`;
+        }
+        
         const registrationData = {
             login: login.trim(),
             email: email.trim(),
-            nickname: nickname.trim() || login.trim(),
+            nickname: finalNickname,
             password: password
         };
         

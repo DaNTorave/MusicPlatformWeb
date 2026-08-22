@@ -65,6 +65,11 @@ export const apiClient = {
             console.log(`[API] Ответ от сервера:`, parsedData);
 
             if (!response.ok) {
+                if (response.status === 401) {
+                    this.clearSession();
+                    window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+                }
+                
                 const error = new Error(parsedData?.error || parsedData?.message || `Ошибка сервера: ${response.status}`);
                 error.status = response.status;
                 error.data = parsedData;

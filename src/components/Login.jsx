@@ -63,8 +63,8 @@ export default function Login({ onSuccess, onSwitchToRegister }) {
             return;
         }
 
-        if (password.length < 8) {
-            setFieldError('Пароль должен содержать не менее 8 символов');
+        if (!password || password.length === 0) {
+            setFieldError('Введите пароль');
             return;
         }
 
@@ -88,7 +88,7 @@ export default function Login({ onSuccess, onSwitchToRegister }) {
         return 'Имя пользователя или email';
     };
 
-    const isFormEmpty = !loginOrEmail.trim() || password.length < 8;
+    const isFormEmpty = !loginOrEmail.trim() || !password;
 
     return (
         <form className="auth-form" onSubmit={handleSubmit}>
@@ -126,14 +126,13 @@ export default function Login({ onSuccess, onSwitchToRegister }) {
                     <input
                         id="login-password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="••••••••"
+                        placeholder="Введите пароль"
                         value={password}
                         onChange={(e) => {
                             setPassword(e.target.value);
                             setFieldError('');
                         }}
                         required
-                        minLength={8}
                         disabled={loading}
                         className={fieldError ? 'error' : ''}
                         autoComplete="current-password"

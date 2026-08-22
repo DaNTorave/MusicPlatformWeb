@@ -42,6 +42,7 @@ module.exports = {
         hot: true,
         open: true,
         static: './build',
+        historyApiFallback: true,
         proxy: [
             {
                 context: ['/api', '/login', '/register', '/profile', '/logout'],
