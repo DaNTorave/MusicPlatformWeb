@@ -87,30 +87,36 @@ export default function Header() {
             />
             
             <header className="header">
-                <div className="header-title-with-logo-block" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+                <div 
+                    className="header-title-with-logo-block" 
+                    onClick={() => navigate('/')} 
+                    style={{ cursor: 'pointer' }}
+                >
                     <img className="header-logo" src={logo} alt="Логотип" />
                     <p className="header-title">Music Platform</p>
                 </div>
+                
                 <div className="header-user-block" ref={dropdownRef}>
                     <div className="user-menu-container">
                         <Button 
-                            type="user-login" 
+                            type="button" 
+                            variant="user-header"
+                            fullWidth={false}
                             onClick={handleUserClick}
-                            className={user ? 'user-login-btn' : ''}
                         >
                             <img className="user-icon" src={userIcon} alt="Иконка пользователя" />
-                            <p>{user ? displayName : 'Войти'}</p>
+                            <span>{user ? displayName : 'Войти'}</span>
                         </Button>
                         
                         {user && isDropdownOpen && (
                             <div className="user-dropdown">
-                                <div className="dropdown-item" onClick={handleProfileClick}>
+                                <button type="button" className="dropdown-item" onClick={handleProfileClick}>
                                     Профиль
-                                </div>
+                                </button>
                                 <div className="dropdown-divider"></div>
-                                <div className="dropdown-item logout" onClick={handleLogout}>
+                                <button type="button" className="dropdown-item logout" onClick={handleLogout}>
                                     Выйти
-                                </div>
+                                </button>
                             </div>
                         )}
                     </div>

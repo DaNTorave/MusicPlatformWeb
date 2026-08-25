@@ -1,39 +1,28 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useMutation } from '../hooks/useApi';
 import { apiClient } from '../api/apiClient';
+import InputField from './InputField';
+import Button from './Button';
 
-import google_logo from "../assets/google.svg";
-import github_logo from "../assets/github.svg";
-import eye from "../assets/eye.svg";
-import eye_crossed from "../assets/eye-crossed.svg";
+import google_logo from '../assets/google.svg';
+import github_logo from '../assets/github.svg';
+import '../styles/Login.css';
 
-import '../styles/Login.css'
-
-export default function Login({ onSuccess, onSwitchToRegister }) {
+export default function Login({ onSuccess, onSwitchToRegister, onSwitchToReset }) {
     const [loginOrEmail, setLoginOrEmail] = useState('');
     const [password, setPassword] = useState('');
     const [fieldError, setFieldError] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
 
-    const { mutate, loading, error } = useMutation('/api/login', {
+    const { mutate, loading } = useMutation('/api/login', {
         method: 'POST',
         onSuccess: (data) => {
-            if (data.token) {
-                apiClient.setToken(data.token);
-            }
-            if (data.user) {
-                apiClient.setUser(data.user);
-            }
-            
-            if (onSuccess) {
-                onSuccess();
-            }
+            if (data.token) apiClient.setToken(data.token);
+            if (data.user) apiClient.setUser(data.user);
+            if (onSuccess) onSuccess();
         },
         onError: (err) => {
             console.error('Ошибка входа:', err);
-            
             let errorMessage = '';
-            
             if (err.status === 401) {
                 errorMessage = 'Неверный логин или пароль';
             } else if (err.status === 400) {
@@ -49,7 +38,6 @@ export default function Login({ onSuccess, onSwitchToRegister }) {
             } else {
                 errorMessage = err.message || 'Произошла ошибка при входе';
             }
-            
             setFieldError(errorMessage);
         }
     });
@@ -63,29 +51,22 @@ export default function Login({ onSuccess, onSwitchToRegister }) {
             return;
         }
 
-        if (!password || password.length === 0) {
+        if (!password) {
             setFieldError('Введите пароль');
             return;
         }
 
-        mutate({
-            login: loginOrEmail,
-            password: password,
-        });
+        mutate({ login: loginOrEmail, password });
     };
 
     const getInputType = () => {
-        if (loginOrEmail.includes('@') && loginOrEmail.includes('.')) {
-            return 'email';
-        }
-        return 'text';
+        return loginOrEmail.includes('@') && loginOrEmail.includes('.') ? 'email' : 'text';
     };
 
     const getPlaceholder = () => {
-        if (loginOrEmail.includes('@') && loginOrEmail.includes('.')) {
-            return 'example@mail.com';
-        }
-        return 'Имя пользователя или email';
+        return loginOrEmail.includes('@') && loginOrEmail.includes('.') 
+            ? 'example@mail.com' 
+            : 'Имя пользователя или email';
     };
 
     const isFormEmpty = !loginOrEmail.trim() || !password;
@@ -101,62 +82,48 @@ export default function Login({ onSuccess, onSwitchToRegister }) {
                 </div>
             )}
 
-            <div className="auth-form-group">
-                <label htmlFor="login-email">Имя пользователя или Email</label>
-                <input
-                    id="login-email"
-                    type={getInputType()}
-                    placeholder={getPlaceholder()}
-                    value={loginOrEmail}
-                    onChange={(e) => {
-                        setLoginOrEmail(e.target.value);
-                        setFieldError('');
-                    }}
-                    required
-                    disabled={loading}
-                    className={fieldError ? 'error' : ''}
-                    autoComplete="username"
-                    autoFocus
-                />
-            </div>
+            <InputField
+                id="login-email"
+                label="Имя пользователя или Email"
+                type={getInputType()}
+                placeholder={getPlaceholder()}
+                value={loginOrEmail}
+                onChange={(e) => {
+                    setLoginOrEmail(e.target.value);
+                    setFieldError('');
+                }}
+                required
+                disabled={loading}
+                autoComplete="username"
+                autoFocus
+            />
 
-            <div className="auth-form-group">
-                <label htmlFor="login-password">Пароль</label>
-                <div className="password-input-wrapper">
-                    <input
-                        id="login-password"
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Введите пароль"
-                        value={password}
-                        onChange={(e) => {
-                            setPassword(e.target.value);
-                            setFieldError('');
-                        }}
-                        required
-                        disabled={loading}
-                        className={fieldError ? 'error' : ''}
-                        autoComplete="current-password"
-                    />
-                    <button
-                        type="button"
-                        className="password-toggle"
-                        onClick={() => setShowPassword(!showPassword)}
-                        tabIndex="-1"
-                    >
-                        {showPassword ? <img className="password-toggle-icon" src={eye_crossed} alt="Показать пароль" /> : <img className="password-toggle-icon" src={eye} alt="Скрыть пароль" />}
-                    </button>
-                </div>
+            <InputField
+                id="login-password"
+                label="Пароль"
+                type="password"
+                placeholder="Введите пароль"
+                value={password}
+                onChange={(e) => {
+                    setPassword(e.target.value);
+                    setFieldError('');
+                }}
+                required
+                disabled={loading}
+                autoComplete="current-password"
+            >
                 <div className="auth-forgot-password">
-                    <a onClick={() => alert('Функция восстановления пароля')}>
+                    <a onClick={onSwitchToReset}>
                         Забыли пароль?
                     </a>
                 </div>
-            </div>
+            </InputField>
 
-            <button 
+            <Button 
                 type="submit" 
-                className="auth-submit-button" 
+                variant="primary"
                 disabled={loading || isFormEmpty}
+                fullWidth
             >
                 {loading ? (
                     <>
@@ -166,29 +133,29 @@ export default function Login({ onSuccess, onSwitchToRegister }) {
                 ) : (
                     'Войти'
                 )}
-            </button>
+            </Button>
 
             <div className="auth-divider">или</div>
 
             <div className="social-buttons">
-                <button 
+                <Button 
                     type="button" 
-                    className="social-button" 
+                    variant="secondary"
                     disabled={loading}
-                    onClick={() => {alert("Это декоративное говно")}}
+                    onClick={() => alert('Вход через Google')}
                 >
                     <img className="social-button-icon" src={google_logo} alt="Google" />
                     Google
-                </button>
-                <button 
+                </Button>
+                <Button 
                     type="button" 
-                    className="social-button" 
+                    variant="secondary"
                     disabled={loading}
-                    onClick={() => {alert("Это тоже декоративное говно")}}
+                    onClick={() => alert('Вход через GitHub')}
                 >
                     <img className="social-button-icon" src={github_logo} alt="GitHub" />
                     GitHub
-                </button>
+                </Button>
             </div>
 
             <div className="auth-form-footer">

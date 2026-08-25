@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useApi } from '../hooks/useApi';
 import { apiClient } from '../api/apiClient';
+import ChangePasswordModal from '../components/ChangePasswordModal';
 import defaultAvatar from '../assets/Шотландская веслоухая.jpg';
 
 import '../styles/ProfilePage.css';
@@ -13,6 +13,7 @@ export default function ProfilePage() {
     const [isOwnProfile, setIsOwnProfile] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -89,6 +90,11 @@ export default function ProfilePage() {
 
     return (
         <div className="profile-page">
+            <ChangePasswordModal 
+                isOpen={isPasswordModalOpen} 
+                onClose={() => setIsPasswordModalOpen(false)} 
+            />
+
             <div className="profile-container">
                 <div className="profile-info">
                     <div className="profile-header">
@@ -132,6 +138,12 @@ export default function ProfilePage() {
                                 </div>
                                 <div className="profile-actions">
                                     <button className="profile-action-btn">Редактировать профиль</button>
+                                    <button 
+                                        className="profile-action-btn"
+                                        onClick={() => setIsPasswordModalOpen(true)}
+                                    >
+                                        Сменить пароль
+                                    </button>
                                 </div>
                             </>
                         )}

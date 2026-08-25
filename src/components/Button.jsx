@@ -1,9 +1,22 @@
-import '../styles/button.css'
+import React from 'react';
+import '../styles/button.css';
 
-export default function Button({children = '', type = '', onClick, disabled}) {
+export default function Button({ 
+    children, 
+    onClick, 
+    type = 'button', 
+    variant = 'primary', 
+    disabled = false,
+    fullWidth = true 
+}) {
     return (
-        <button className={`button ${type}`} onClick={onClick} disabled={disabled}>
+        <button
+            type={type}
+            onClick={onClick}
+            disabled={disabled}
+            className={`custom-btn btn-${variant} ${fullWidth ? 'btn-full' : ''}`}
+        >
             {children}
-        </button>        
+        </button>
     );
-}
+};
