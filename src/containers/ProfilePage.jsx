@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/apiClient';
+
 import ChangePasswordModal from '../components/ChangePasswordModal';
+import ChangeNicknameModal from '../components/ChangeNicknameModal';
+
 import defaultAvatar from '../assets/Шотландская веслоухая.jpg';
 
 import '../styles/ProfilePage.css';
@@ -14,6 +17,7 @@ export default function ProfilePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -95,6 +99,15 @@ export default function ProfilePage() {
                 onClose={() => setIsPasswordModalOpen(false)} 
             />
 
+            <ChangeNicknameModal
+                isOpen={isNicknameModalOpen}
+                onClose={() => setIsNicknameModalOpen(false)}
+                currentNickname={user.nickname}
+                onNicknameUpdated={(updatedUser) => {
+                    setUser(prev => ({ ...prev, ...updatedUser }));
+                }}
+            />
+
             <div className="profile-container">
                 <div className="profile-info">
                     <div className="profile-header">
@@ -137,7 +150,12 @@ export default function ProfilePage() {
                                     </span>
                                 </div>
                                 <div className="profile-actions">
-                                    <button className="profile-action-btn">Редактировать профиль</button>
+                                    <button 
+                                        className="profile-action-btn"
+                                        onClick={() => setIsNicknameModalOpen(true)}
+                                    >
+                                        Изменить имя
+                                    </button>
                                     <button 
                                         className="profile-action-btn"
                                         onClick={() => setIsPasswordModalOpen(true)}
