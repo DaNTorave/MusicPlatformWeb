@@ -1,15 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "../components/Button";
-import AuthModal from "./AuthModal";
 import { apiClient } from '../api/apiClient';
 
-import "../styles/Header.css";
+import Button from "../components/Button";
+import AuthModal from "./AuthModal";
+import UploadMusicModal from "../components/UploadMusicModal";
+
 import logo from "../assets/logo.png";
 import userIcon from "../assets/user-svgrepo-com.svg";
 
+import "../styles/Header.css";
+
 export default function Header() {
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [user, setUser] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -75,6 +79,11 @@ export default function Header() {
         }
     };
 
+    const handleUploadClick = () => {
+        setIsDropdownOpen(false);
+        setIsUploadModalOpen(true);
+    };
+
     const displayName = user ? (user.nickname || user.login) : null;
 
     return (
@@ -84,6 +93,12 @@ export default function Header() {
                 onClose={() => setIsAuthModalOpen(false)}
                 onLoginSuccess={handleLoginSuccess}
                 initialTab="login"
+            />
+
+            <UploadMusicModal
+                isOpen={isUploadModalOpen}
+                onClose={() => setIsUploadModalOpen(false)}
+                onSuccess={() => console.log('Контент загружен!')}
             />
             
             <header className="header">
@@ -113,6 +128,20 @@ export default function Header() {
                                 <button type="button" className="dropdown-item" onClick={handleProfileClick}>
                                     Профиль
                                 </button>
+
+                                {user && (user.role === 'admin' || user.role === 'moderator') && (
+                                    <button 
+                                        type="button" 
+                                        className="dropdown-item" 
+                                        onClick={() => {
+                                            setIsDropdownOpen(false);
+                                            navigate('/moderation');
+                                        }}
+                                    >
+                                        Модерация
+                                    </button>
+                                )}
+
                                 <div className="dropdown-divider"></div>
                                 <button type="button" className="dropdown-item logout" onClick={handleLogout}>
                                     Выйти

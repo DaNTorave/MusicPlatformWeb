@@ -1,0 +1,202 @@
+.track-row-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: #fbf9f9;
+  border-radius: 14px;
+  border: 1px solid #f0ecec;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.track-row-item:hover {
+  background: #ffffff;
+  border-color: #e5e0e0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.track-row-item.active {
+  background: #f0f7ff;
+  border-color: #cbe3fc;
+}
+
+.track-row-num {
+  font-weight: 700;
+  color: #999;
+  min-width: 24px;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.track-row-cover-wrapper {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.track-row-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.track-cover-play-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  border: none;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.track-row-item:hover .track-cover-play-btn,
+.track-cover-play-btn.visible {
+  opacity: 1;
+}
+
+.track-cover-play-btn:hover {
+  background: rgba(23, 115, 207, 0.75);
+}
+
+.track-cover-play-btn img {
+  width: 28px;
+  height: 28px;
+  filter: brightness(0) invert(1);
+}
+
+.track-row-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.track-row-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #14161a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-row-artist {
+  font-size: 0.8rem;
+  color: #777;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-row-duration {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #8c8c8c;
+  min-width: 44px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.track-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.track-action-btn {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  border-radius: 10px;
+  border: 1px solid #e8e0e0;
+  background: #fcfafafa;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.track-action-btn:hover {
+  background: #ffffff;
+  border-color: #14161a;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.track-action-btn:active {
+  transform: scale(0.95);
+}
+
+.action-icon {
+  width: 20px;
+  height: 20px;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.track-action-btn:hover .action-icon {
+  opacity: 0.9;
+}
+
+.track-action-btn.active-fav {
+  border-color: #fecaca;
+  background: #fff5f5;
+}
+
+.fav-icon-active {
+  opacity: 1 !important;
+  filter: drop-shadow(0 2px 4px rgba(233, 19, 19, 0.3));
+}
+
+.track-action-btn.delete-btn {
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.track-action-btn.delete-btn:hover {
+  background: #fecaca;
+  border-color: #f87171;
+}
+
+.track-action-btn.edit-btn {
+  background: #eef6fc;
+  border-color: #cbe3fc;
+}
+
+.track-action-btn.edit-btn:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.track-action-btn.delete-btn .action-icon {
+  width: 18px;
+  height: 18px;
+  filter: invert(19%) sepia(88%) saturate(5412%) hue-rotate(352deg) brightness(92%) contrast(93%);
+  opacity: 1;
+}
+
+.track-action-btn.delete-btn:hover .action-icon {
+  filter: invert(14%) sepia(85%) saturate(4800%) hue-rotate(353deg) brightness(85%) contrast(100%);
+}

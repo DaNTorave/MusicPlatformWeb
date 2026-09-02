@@ -88,6 +88,24 @@ export default function ProfilePage() {
         fetchProfile();
     }, [id, navigate]);
 
+    const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    try {
+        const res = await apiClient.upload('/api/profile/avatar', formData);
+        if (res.user) {
+        setUser(prev => ({ ...prev, ...res.user }));
+        apiClient.setUser(res.user);
+        }
+    } catch (err) {
+        alert(err.message || 'Ошибка загрузки аватара');
+    }
+    };
+
     if (loading) return <div className="profile-loading">Загрузка...</div>;
     if (error) return <div className="profile-error">{error}</div>;
     if (!user) return <div className="profile-not-found">Пользователь не найден</div>;
@@ -150,6 +168,10 @@ export default function ProfilePage() {
                                     </span>
                                 </div>
                                 <div className="profile-actions">
+                                    <label className="profile-action-btn" style={{ cursor: 'pointer', textAlign: 'center' }}>
+                                            Изменить аватар
+                                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
+                                    </label>
                                     <button 
                                         className="profile-action-btn"
                                         onClick={() => setIsNicknameModalOpen(true)}
@@ -160,7 +182,7 @@ export default function ProfilePage() {
                                         className="profile-action-btn"
                                         onClick={() => setIsPasswordModalOpen(true)}
                                     >
-                                        Сменить пароль
+                                        Изменить пароль
                                     </button>
                                 </div>
                             </>

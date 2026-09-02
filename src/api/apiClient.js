@@ -133,5 +133,43 @@ export const apiClient = {
             register: registerResponse,
             login: loginResponse
         };
-    }
+    },
+
+    async upload(url, formData) {
+        const token = this.getToken();
+        const headers = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        try {
+            console.log(`[API] Upload: POST ${url}`);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers,
+                body: formData
+            });
+
+            const parsedData = await parseResponse(response);
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    this.clearSession();
+                    window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+                }
+                const error = new Error(parsedData?.error || parsedData?.message || `Ошибка загрузки: ${response.status}`);
+                error.status = response.status;
+                error.data = parsedData;
+                throw error;
+            }
+
+            return parsedData;
+        } catch (err) {
+            if (err.name === 'TypeError') {
+                err.isNetworkError = true;
+                err.message = 'Сервер не запущен или CORS заблокирован.';
+            }
+            throw err;
+        }
+    },
 };

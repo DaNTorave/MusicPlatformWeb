@@ -1,0 +1,142 @@
+.moderation-modal .modal-window-content {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.moderation-preview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.moderation-cover {
+  position: relative;
+  display: inline-block;
+}
+
+.moderation-cover img {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 3px solid #e8e0e0;
+}
+
+.moderation-cover-change {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #14161a;
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  white-space: nowrap;
+  border: 1px solid #3d4048;
+  transition: all 0.2s;
+}
+
+.moderation-cover-change:hover {
+  background: #2d3038;
+}
+
+.moderation-cover-change input {
+  display: none;
+}
+
+.moderation-audio-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.moderation-audio-player {
+  width: 100%;
+  height: 40px;
+}
+
+.moderation-audio-change {
+  display: inline-block;
+  background: #fcfafafa;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 2px solid #e8e0e0;
+  cursor: pointer;
+  font-size: 0.85rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.moderation-audio-change:hover {
+  border-color: #14161a;
+}
+
+.moderation-audio-change input {
+  display: none;
+}
+
+.moderation-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.moderation-action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.moderation-textarea {
+  padding: 10px 12px;
+  border: 2px solid #e8e0e0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 50px;
+  transition: all 0.2s;
+  background: #fcfafafa;
+}
+
+.moderation-textarea:focus {
+  outline: none;
+  border-color: #1773cf;
+  box-shadow: 0 0 0 4px rgba(23, 115, 207, 0.1);
+}
+
+@media (max-width: 560px) {
+  .moderation-cover img {
+    width: 90px;
+    height: 90px;
+  }
+}
+
+.moderation-single-audio-box {
+  display: flex;
+  justify-content: space-between;
+}
+
+.moderation-single-audio-box-btn {
+  display: flex;
+  margin: 0.2rem;
+  width: 3rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.track-slot-play-btn {
+
+  display: flex;
+  align-items: center;
+}
+
+.moderation-audio-change {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+}

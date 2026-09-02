@@ -1,0 +1,143 @@
+.content-page {
+  display: flex;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  padding: 2.5rem;
+  border: 1px solid #f0eded;
+}
+
+.content-container {
+  display: flex;
+  gap: 2.5rem;
+  width: 100%;
+}
+
+.content-actions-panel {
+  display: flex;
+  flex-direction: column;
+  width: 260px;
+  min-width: 220px;
+  gap: 1.25rem;
+  background: #fbf9f9;
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid #eee8e8;
+  height: fit-content;
+}
+
+.content-actions-panel-button {
+  width: 100%;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, #14161a 0%, #2d3038 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.content-actions-panel-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(20, 22, 26, 0.2);
+}
+
+.artists-catalog-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.section-heading {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #14161a;
+  letter-spacing: -0.5px;
+}
+
+.artists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 1.75rem;
+}
+
+.artist-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.5rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #f2efef;
+}
+
+.artist-card:hover {
+  transform: translateY(-6px);
+  border-color: #e5e0e0;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+.artist-card-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #f6f3f3;
+  transition: transform 0.25s ease;
+}
+
+.artist-card:hover .artist-card-avatar {
+  transform: scale(1.04);
+}
+
+.artist-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.artist-card-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #14161a;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.artist-card-genre {
+  font-size: 0.85rem;
+  color: #1773cf;
+  font-weight: 600;
+  background: #eef6fc;
+  padding: 2px 10px;
+  border-radius: 20px;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.artist-card-plays {
+  font-size: 0.8rem;
+  color: #8c8c8c;
+  margin-top: 2px;
+}
+
+@media (max-width: 860px) {
+  .content-container {
+    flex-direction: column;
+  }
+  .content-actions-panel {
+    width: 100%;
+  }
+}

@@ -1,0 +1,313 @@
+.artist-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 3rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f0eded;
+}
+
+.artist-page-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 250px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #666;
+}
+
+.artist-page-state.error {
+  color: #e74c3c;
+}
+
+.artist-header {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+  border-bottom: 1px solid #f0ecec;
+  padding-bottom: 2.5rem;
+}
+
+.artist-avatar {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #f0ecec;
+}
+
+.artist-tag {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #1773cf;
+  background: #eef6fc;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.artist-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #14161a;
+  margin: 0 0 6px 0;
+}
+
+.artist-meta {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.album-cover-large {
+  width: 160px;
+  height: 160px;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.artist-link {
+  color: #1773cf;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.artist-link:hover {
+  text-decoration: underline;
+}
+
+.artist-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.artist-section h2 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #14161a;
+  letter-spacing: -0.3px;
+}
+
+.empty-text {
+  color: #888;
+  font-size: 0.95rem;
+  font-style: italic;
+}
+
+.album-tracks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ==========================================================================
+   Сетка и карточки Синглов и Альбомов
+   ========================================================================== */
+
+.media-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 1.5rem;
+}
+
+.media-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #fbf9f9;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid #f0ecec;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.media-card:hover {
+  transform: translateY(-4px);
+  background: #ffffff;
+  border-color: #e5e0e0;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+.media-card-cover-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.media-card-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.media-card:hover .media-card-cover {
+  transform: scale(1.04);
+}
+
+/* Кнопка Play/Pause поверх обложки карточки */
+.media-card-play-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #1773cf;
+  color: #ffffff;
+  border: none;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(8px) scale(0.9);
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 16px rgba(23, 115, 207, 0.4);
+  z-index: 2;
+}
+
+/* Подсветка кнопки при наведении на ВСЮ карточку */
+.media-card:hover .media-card-play-btn,
+.media-card-play-btn.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.media-card-play-btn:hover {
+  background: #1461b0;
+  transform: scale(1.08);
+}
+
+.media-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 10px;
+}
+
+.media-card-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #14161a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.media-card-subtitle {
+  font-size: 0.8rem;
+  color: #888;
+  font-weight: 500;
+}
+
+/* Кнопка удаления на карточке */
+.media-card-delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(254, 226, 226, 0.9);
+  color: #991b1b;
+  font-size: 0.75rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 3;
+}
+
+.media-card:hover .media-card-delete-btn {
+  opacity: 1;
+}
+
+.media-card-delete-btn:hover {
+  background: #fee2e2;
+  color: #7f1d1d;
+  transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+  .artist-page {
+    padding: 1.5rem;
+  }
+
+  .artist-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .media-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 1rem;
+  }
+}
+
+.card-staff-controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.media-card:hover .card-staff-controls,
+.artist-card:hover .card-staff-controls {
+  opacity: 1;
+}
+
+.staff-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: all 0.2s ease;
+}
+
+.staff-btn.edit {
+  background: #ffffff;
+  color: #1773cf;
+}
+.staff-btn.edit:hover {
+  background: #e0f2fe;
+  transform: scale(1.1);
+}
+
+.staff-btn.delete {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.staff-btn.delete:hover {
+  background: #fecaca;
+  transform: scale(1.1);
+}

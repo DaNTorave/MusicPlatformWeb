@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
@@ -17,6 +18,12 @@ module.exports = {
                 use: 'babel-loader'
             },
             {
+                test: /\.m?js/,
+                resolve: {
+                    fullySpecified: false
+                }
+            },
+            {
                 test: /\.css$/,
                 use: ['style-loader', 'css-loader']
             },
@@ -30,11 +37,23 @@ module.exports = {
         ]
     },
     resolve: {
-        extensions: ['.js', '.jsx']
+        extensions: ['.js', '.jsx', '.json', '.mjs'],
+        alias: {
+            'process/browser': require.resolve('process/browser.js')
+        },
+        fallback: {
+            buffer: require.resolve('buffer/'),
+            stream: require.resolve('stream-browserify'),
+            process: require.resolve('process/browser.js')
+        }
     },
     plugins: [
         new HtmlWebpackPlugin({
             template: './public/index.html'
+        }),
+        new webpack.ProvidePlugin({
+            Buffer: ['buffer', 'Buffer'],
+            process: 'process/browser.js'
         })
     ],
     devServer: {
@@ -45,7 +64,7 @@ module.exports = {
         historyApiFallback: true,
         proxy: [
             {
-                context: ['/api', '/login', '/register', '/profile', '/logout'],
+                context: ['/api', '/login', '/register', '/profile', '/logout', '/uploads'],
                 target: 'http://localhost:4000',
                 changeOrigin: true
             }
