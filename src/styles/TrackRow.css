@@ -200,3 +200,31 @@
 .track-action-btn.delete-btn:hover .action-icon {
   filter: invert(14%) sepia(85%) saturate(4800%) hue-rotate(353deg) brightness(85%) contrast(100%);
 }
+
+.track-row-artists-list {
+  font-size: 0.82rem;
+  color: #777;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-row-artist-link {
+  color: #777;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.track-row-artist-link:hover {
+  color: #1773cf;
+  text-decoration: underline;
+}
+
+.track-row-artist-name {
+  color: #777;
+}
+
+.artist-separator {
+  color: #999;
+}

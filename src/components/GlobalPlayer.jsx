@@ -55,12 +55,24 @@ export default function GlobalPlayer() {
 
   if (!currentTrack) return null;
 
-  const currentIdx = queue.findIndex(t => t.id === currentTrack.id);
+  const currentIdx = queue.findIndex(t => String(t.id) === String(currentTrack.id));
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx !== -1 && currentIdx + 1 < queue.length;
 
-  const targetArtistId = currentTrack.artist?.id || currentTrack.artist_id;
-  const artistName = currentTrack.artist?.name || (typeof currentTrack.artist === 'string' ? currentTrack.artist : 'Исполнитель');
+  const allArtists = [];
+  if (currentTrack.artist && currentTrack.artist.name) {
+    allArtists.push(currentTrack.artist);
+  } else if (typeof currentTrack.artist === 'string') {
+    allArtists.push({ id: currentTrack.artist_id, name: currentTrack.artist });
+  }
+
+  if (Array.isArray(currentTrack.collaborators)) {
+    currentTrack.collaborators.forEach((c) => {
+      if (c && c.name && !allArtists.some((a) => String(a.id) === String(c.id))) {
+        allArtists.push(c);
+      }
+    });
+  }
 
   return (
     <div className="global-player-bar">
@@ -68,17 +80,20 @@ export default function GlobalPlayer() {
         <img src={currentTrack.cover || defaultCover} alt="cover" className="player-cover" />
         <div className="player-track-meta">
           <div className="player-title" title={currentTrack.title}>{currentTrack.title}</div>
-          {targetArtistId ? (
-            <Link 
-              to={`/artists/${targetArtistId}`} 
-              className="player-artist player-artist-link"
-              title={artistName}
-            >
-              {artistName}
-            </Link>
-          ) : (
-            <span className="player-artist">{artistName}</span>
-          )}
+          <div className="player-artists-container" style={{ fontSize: '0.8rem', color: '#a0a0a0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {allArtists.map((art, idx) => (
+              <React.Fragment key={art.id || idx}>
+                {art.id ? (
+                  <Link to={`/artists/${art.id}`} className="player-artist player-artist-link" title={art.name}>
+                    {art.name}
+                  </Link>
+                ) : (
+                  <span className="player-artist">{art.name}</span>
+                )}
+                {idx < allArtists.length - 1 && <span>, </span>}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
       </div>
 

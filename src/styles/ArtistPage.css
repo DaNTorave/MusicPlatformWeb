@@ -107,10 +107,6 @@
   gap: 0.75rem;
 }
 
-/* ==========================================================================
-   Сетка и карточки Синглов и Альбомов
-   ========================================================================== */
-
 .media-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
@@ -157,7 +153,6 @@
   transform: scale(1.04);
 }
 
-/* Кнопка Play/Pause поверх обложки карточки */
 .media-card-play-btn {
   position: absolute;
   bottom: 10px;
@@ -180,7 +175,6 @@
   z-index: 2;
 }
 
-/* Подсветка кнопки при наведении на ВСЮ карточку */
 .media-card:hover .media-card-play-btn,
 .media-card-play-btn.visible {
   opacity: 1;
@@ -214,7 +208,6 @@
   font-weight: 500;
 }
 
-/* Кнопка удаления на карточке */
 .media-card-delete-btn {
   position: absolute;
   top: 6px;
@@ -310,4 +303,26 @@
 .staff-btn.delete:hover {
   background: #fecaca;
   transform: scale(1.1);
+}
+
+.collab-card-main-artist {
+  font-size: 0.78rem;
+  color: #1773cf;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  margin-top: 2px;
+}
+
+.collab-card-main-artist:hover {
+  text-decoration: underline;
+}
+
+.player-main-icon {
+  width: 26px;
+  height: 26px;
+  display: block;
+  filter: brightness(0) invert(1);
 }

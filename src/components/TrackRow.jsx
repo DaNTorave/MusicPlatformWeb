@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 import defaultCover from '../assets/Шотландская веслоухая.jpg';
 import favoriteIcon from '../assets/favorite.svg';
@@ -20,29 +21,37 @@ export default function TrackRow({
   canDelete = false
 }) {
   const [isFavorite, setIsFavorite] = useState(false);
-  const [duration, setDuration] = useState(track.duration_seconds || track.duration || 0);
+  const [duration, setDuration] = useState(() => track.duration_seconds || track.duration || 0);
 
   useEffect(() => {
-    if (track.duration_seconds && track.duration_seconds > 0) {
-      setDuration(track.duration_seconds);
+    const directDur = track.duration_seconds || track.duration;
+    if (directDur && directDur > 0) {
+      setDuration(directDur);
       return;
     }
 
     if (track.id) {
-      const audio = new Audio(`/api/stream/${track.id}`);
+      let isMounted = true;
+      const audio = new Audio();
+      audio.preload = 'metadata';
+      audio.src = `/api/stream/${track.id}`;
+
       const handleLoadedMetadata = () => {
-        if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+        if (isMounted && audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
           setDuration(Math.round(audio.duration));
         }
       };
 
       audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+
       return () => {
+        isMounted = false;
         audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-        audio.src = '';
+        audio.removeAttribute('src');
+        audio.load();
       };
     }
-  }, [track.id, track.duration_seconds]);
+  }, [track.id, track.duration_seconds, track.duration]);
 
   const formatDuration = (seconds) => {
     if (!seconds || isNaN(seconds) || seconds <= 0) return '--:--';
@@ -50,6 +59,18 @@ export default function TrackRow({
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  const artistsList = [];
+  if (track.artist && track.artist.name) {
+    artistsList.push(track.artist);
+  }
+  if (Array.isArray(track.collaborators)) {
+    track.collaborators.forEach((c) => {
+      if (c && c.name && !artistsList.some((a) => String(a.id) === String(c.id))) {
+        artistsList.push(c);
+      }
+    });
+  }
 
   return (
     <div 
@@ -79,9 +100,25 @@ export default function TrackRow({
 
       <div className="track-row-main">
         <span className="track-row-title" title={track.title}>{track.title}</span>
-        {track.artist?.name && (
-          <span className="track-row-artist">{track.artist.name}</span>
-        )}
+        
+        <div className="track-row-artists-list" onClick={(e) => e.stopPropagation()}>
+          {artistsList.length > 0 ? (
+            artistsList.map((art, idx) => (
+              <React.Fragment key={art.id || idx}>
+                {art.id ? (
+                  <Link to={`/artists/${art.id}`} className="track-row-artist-link">
+                    {art.name}
+                  </Link>
+                ) : (
+                  <span className="track-row-artist-name">{art.name}</span>
+                )}
+                {idx < artistsList.length - 1 && <span className="artist-separator">, </span>}
+              </React.Fragment>
+            ))
+          ) : (
+            <span className="track-row-artist-name">Неизвестный исполнитель</span>
+          )}
+        </div>
       </div>
 
       <div className="track-row-duration">

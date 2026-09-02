@@ -7,6 +7,8 @@ import UploadMusicModal from '../components/UploadMusicModal';
 import EditEntityModal from '../components/EditEntityModal';
 import Button from '../components/Button';
 import TrackRow from '../components/TrackRow';
+import playIcon from '../assets/play-icon.svg';
+import pauseIcon from '../assets/pause-icon.svg';
 
 import defaultCover from '../assets/Шотландская веслоухая.jpg';
 import edit_icon from '../assets/edit-icon.svg';
@@ -81,20 +83,39 @@ export default function ArtistPage() {
 
   const popularTracks = useMemo(() => {
     if (!data) return [];
+    
     const fromAlbums = (data.albums || []).flatMap(a => 
       (a.tracks || []).map(t => ({ 
         ...t, 
         albumTitle: a.title, 
-        cover: a.cover || data.artist.avatar,
-        artist: { id: data.artist.id, name: data.artist.name } 
+        cover: t.cover || a.cover || data.artist.avatar,
+        artist: t.artist || { id: data.artist.id, name: data.artist.name } 
       }))
     );
+
     const singles = (data.singles || []).map(s => ({
       ...s,
       cover: s.cover || data.artist.avatar,
-      artist: { name: data.artist.name }
+      artist: s.artist || { id: data.artist.id, name: data.artist.name }
     }));
-    return [...singles, ...fromAlbums].sort((a, b) => (b.plays_count || 0) - (a.plays_count || 0));
+
+    const collabs = (data.collab_tracks || []).map(c => ({
+      ...c,
+      albumTitle: c.album?.title,
+      cover: c.cover || c.album?.cover || data.artist.avatar,
+      artist: c.artist
+    }));
+
+    const allTracksMap = new Map();
+    [...singles, ...fromAlbums, ...collabs].forEach(t => {
+      if (!allTracksMap.has(t.id)) {
+        allTracksMap.set(t.id, t);
+      }
+    });
+
+    return Array.from(allTracksMap.values()).sort(
+      (a, b) => (b.plays_count || 0) - (a.plays_count || 0)
+    );
   }, [data]);
 
   const handlePlayAlbum = (e, album) => {
@@ -231,7 +252,7 @@ export default function ArtistPage() {
                       })}
                       title={isCurrentPlaying ? 'Пауза' : 'Слушать'}
                     >
-                      {isCurrentPlaying ? '⏸' : '▶'}
+                      <img src={isCurrentPlaying ? pauseIcon : playIcon} alt="Play/Pause" className="player-main-icon" />
                     </button>
                   </div>
 
@@ -297,7 +318,7 @@ export default function ArtistPage() {
                       onClick={(e) => handlePlayAlbum(e, album)}
                       title={isAlbumPlaying ? 'Пауза' : 'Слушать альбом'}
                     >
-                      {isAlbumPlaying ? '⏸' : '▶'}
+                      <img src={isAlbumPlaying ? pauseIcon : playIcon} alt="Play/Pause" className="player-main-icon" />
                     </button>
                   </div>
 
@@ -321,7 +342,7 @@ export default function ArtistPage() {
                         }}
                         title="Редактировать альбом"
                       >
-                        ✎
+                        <img src={edit_icon} alt='изменить' width='14px'/>
                       </button>
                       <button
                         type="button"
@@ -329,7 +350,7 @@ export default function ArtistPage() {
                         onClick={(e) => handleDeleteAlbum(e, album.id)}
                         title="Удалить альбом"
                       >
-                        ✕
+                        <img src={close_icon} alt='удалить' width='14px'/>
                       </button>
                     </div>
                   )}
@@ -339,6 +360,96 @@ export default function ArtistPage() {
           </div>
         )}
       </div>
+
+      {data.collab_tracks && data.collab_tracks.length > 0 && (
+        <div className="artist-section">
+          <h2>Участие в релизах</h2>
+          <div className="media-cards-grid">
+            {data.collab_tracks.map((track) => {
+              const isCurrentPlaying = currentTrack?.id === track.id && isPlaying;
+              const preparedTrack = {
+                ...track,
+                cover: track.cover || track.album?.cover || defaultCover,
+                artist: track.artist || { id: artist.id, name: artist.name }
+              };
+
+              return (
+                <div key={track.id} className="media-card single-card">
+                  <div className="media-card-cover-wrapper">
+                    <img 
+                      src={preparedTrack.cover} 
+                      alt={track.title} 
+                      className="media-card-cover"
+                    />
+                    <button 
+                      type="button"
+                      className={`media-card-play-btn ${isCurrentPlaying ? 'visible' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        playTrack(preparedTrack, data.collab_tracks.map(t => ({
+                          ...t,
+                          cover: t.cover || t.album?.cover || defaultCover,
+                          artist: t.artist || { id: artist.id, name: artist.name }
+                        })));
+                      }}
+                      title={isCurrentPlaying ? 'Пауза' : 'Слушать'}
+                    >
+                      <img src={isCurrentPlaying ? pauseIcon : playIcon} alt="Play/Pause" className="player-main-icon" />
+                    </button>
+                  </div>
+
+                  <div className="media-card-info">
+                    <span className="media-card-title" title={track.title}>
+                      {track.title}
+                    </span>
+                    <span className="media-card-subtitle">
+                      {track.album?.title ? (
+                        <>Альбом: <em>{track.album.title}</em></>
+                      ) : (
+                        'Совместный трек'
+                      )}
+                    </span>
+                    {track.artist && (
+                      <span 
+                        className="collab-card-main-artist"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/artists/${track.artist.id}`);
+                        }}
+                        title={`Основной автор: ${track.artist.name}`}
+                      >
+                        {track.artist.name}
+                      </span>
+                    )}
+                  </div>
+
+                  {isStaff && (
+                    <div className="card-staff-controls" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        className="staff-btn edit"
+                        onClick={() => setEditModal({ isOpen: true, item: track, type: 'track' })}
+                        title="Редактировать трек"
+                      >
+                        <img src={edit_icon} alt='изменить' width='14px'/>
+                      </button>
+                      <button
+                        type="button"
+                        className="staff-btn delete"
+                        onClick={(e) => handleDeleteTrack(e, track.id)}
+                        title="Удалить трек"
+                      >
+                        <img src={close_icon} alt='удалить' width='14px'/>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -4,13 +4,23 @@ const AudioContext = createContext(null);
 
 export const AudioProvider = ({ children }) => {
   const [currentTrack, setCurrentTrack] = useState(() => {
-    const saved = localStorage.getItem('player_track');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('player_track');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
+
   const [queue, setQueue] = useState(() => {
-    const saved = localStorage.getItem('player_queue');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('player_queue');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(() => {
     return parseFloat(localStorage.getItem('player_volume') || '0.8');
@@ -21,8 +31,39 @@ export const AudioProvider = ({ children }) => {
 
   const queueRef = useRef(queue);
   queueRef.current = queue;
+
   const currentTrackRef = useRef(currentTrack);
   currentTrackRef.current = currentTrack;
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    audio.volume = volume;
+
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+    const onError = (e) => {
+      console.error('Audio playback error:', e);
+      setIsPlaying(false);
+    };
+
+    audio.addEventListener('play', onPlay);
+    audio.addEventListener('pause', onPause);
+    audio.addEventListener('error', onError);
+
+    setIsPlaying(false);
+
+    if (currentTrack?.id) {
+      const targetSrc = currentTrack.streamUrl || `/api/stream/${currentTrack.id}`;
+      currentSrcRef.current = targetSrc;
+      audio.src = targetSrc;
+    }
+
+    return () => {
+      audio.removeEventListener('play', onPlay);
+      audio.removeEventListener('pause', onPause);
+      audio.removeEventListener('error', onError);
+    };
+  }, []);
 
   useEffect(() => {
     audioRef.current.volume = volume;
@@ -34,11 +75,10 @@ export const AudioProvider = ({ children }) => {
     const currentT = currentTrackRef.current;
     if (!currentQ || currentQ.length === 0 || !currentT) return;
 
-    const currentIndex = currentQ.findIndex(t => t.id === currentT.id);
+    const currentIndex = currentQ.findIndex(t => String(t.id) === String(currentT.id));
     if (currentIndex !== -1 && currentIndex + 1 < currentQ.length) {
       const nextT = currentQ[currentIndex + 1];
-      setCurrentTrack(nextT);
-      setIsPlaying(true);
+      playTrack(nextT, currentQ);
     }
   };
 
@@ -47,11 +87,10 @@ export const AudioProvider = ({ children }) => {
     const currentT = currentTrackRef.current;
     if (!currentQ || currentQ.length === 0 || !currentT) return;
 
-    const currentIndex = currentQ.findIndex(t => t.id === currentT.id);
+    const currentIndex = currentQ.findIndex(t => String(t.id) === String(currentT.id));
     if (currentIndex > 0) {
       const prevT = currentQ[currentIndex - 1];
-      setCurrentTrack(prevT);
-      setIsPlaying(true);
+      playTrack(prevT, currentQ);
     } else {
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
@@ -71,54 +110,61 @@ export const AudioProvider = ({ children }) => {
     };
   }, []);
 
-  useEffect(() => {
-    if (currentTrack) {
-      const targetSrc = currentTrack.streamUrl || `/api/stream/${currentTrack.id}`;
-
-      if (currentSrcRef.current !== targetSrc) {
-        currentSrcRef.current = targetSrc;
-        audioRef.current.src = targetSrc;
-
-        if (!currentTrack.streamUrl) {
-          localStorage.setItem('player_track', JSON.stringify(currentTrack));
-        }
-
-        if (isPlaying) {
-          audioRef.current.play().catch(() => setIsPlaying(false));
-        }
-      }
-    } else {
-      audioRef.current.pause();
-      audioRef.current.src = '';
-      currentSrcRef.current = '';
-      setIsPlaying(false);
-      localStorage.removeItem('player_track');
-    }
-  }, [currentTrack, isPlaying]);
-
-const playTrack = (track, newQueue = null) => {
-    if (!track) return;
-
-    if (currentTrack?.id === track.id && !track.streamUrl) {
-      if (isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        audioRef.current.play().catch(() => setIsPlaying(false));
-        setIsPlaying(true);
-      }
-      return;
-    }
+  const playTrack = (track, newQueue = null) => {
+    if (!track || !track.id) return;
+    const audio = audioRef.current;
 
     if (newQueue && Array.isArray(newQueue)) {
       setQueue(newQueue);
       queueRef.current = newQueue;
-      localStorage.setItem('player_queue', JSON.stringify(newQueue));
+      try {
+        localStorage.setItem('player_queue', JSON.stringify(newQueue));
+      } catch (e) {
+        console.warn('Queue storage error:', e);
+      }
+    }
+
+    const targetSrc = track.streamUrl || `/api/stream/${track.id}`;
+    const isSameTrack = currentTrack && String(currentTrack.id) === String(track.id);
+
+    if (isSameTrack && !track.streamUrl) {
+      if (!audio.src || currentSrcRef.current !== targetSrc) {
+        audio.src = targetSrc;
+        currentSrcRef.current = targetSrc;
+      }
+
+      if (!audio.paused && isPlaying) {
+        audio.pause();
+      } else {
+        audio.play().catch(err => {
+          console.warn('Play was prevented:', err);
+          setIsPlaying(false);
+        });
+      }
+      return;
     }
 
     setCurrentTrack(track);
     currentTrackRef.current = track;
-    setIsPlaying(true);
+
+    if (!track.streamUrl) {
+      try {
+        localStorage.setItem('player_track', JSON.stringify(track));
+      } catch (e) {
+        console.warn('Track storage error:', e);
+      }
+    }
+
+    currentSrcRef.current = targetSrc;
+    audio.src = targetSrc;
+    audio.currentTime = 0;
+
+    audio.play().then(() => {
+      setIsPlaying(true);
+    }).catch(err => {
+      console.warn('Playback error:', err);
+      setIsPlaying(false);
+    });
   };
 
   const updateTrackTitle = (newTitle) => {
@@ -144,9 +190,10 @@ const playTrack = (track, newQueue = null) => {
   };
 
   const stopPlayer = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.src = '';
     }
     currentSrcRef.current = '';
     setIsPlaying(false);

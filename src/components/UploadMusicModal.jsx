@@ -26,8 +26,9 @@ export default function UploadMusicModal({
   const [coverFile, setCoverFile] = useState(null);
   const [coverPreview, setCoverPreview] = useState('');
   const [singleAudio, setSingleAudio] = useState(null);
+  const [singleDuration, setSingleDuration] = useState(0);
   
-  const [albumTracks, setAlbumTracks] = useState([{ title: '', audio: null, collaboratorIds: [] }]);
+  const [albumTracks, setAlbumTracks] = useState([{ title: '', audio: null, duration: 0, collaboratorIds: [] }]);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   const singleFileInputRef = useRef(null);
@@ -58,7 +59,7 @@ export default function UploadMusicModal({
   if (!isOpen) return null;
 
   const handleAddTrackSlot = () => {
-    setAlbumTracks(prev => [...prev, { title: '', audio: null, collaboratorIds: [] }]);
+    setAlbumTracks(prev => [...prev, { title: '', audio: null, duration: 0, collaboratorIds: [] }]);
   };
 
   const handleTrackChange = (index, field, value) => {
@@ -70,7 +71,10 @@ export default function UploadMusicModal({
   };
 
   const handleRemoveTrackSlot = (index) => {
-    setAlbumTracks(prev => prev.filter((_, i) => i !== index));
+    setAlbumTracks(prev => {
+      const filtered = prev.filter((_, i) => i !== index);
+      return filtered.length === 0 ? [{ title: '', audio: null, duration: 0, collaboratorIds: [] }] : filtered;
+    });
   };
 
   const moveTrack = (fromIndex, toIndex) => {
@@ -90,10 +94,32 @@ export default function UploadMusicModal({
 
     try {
       const metadata = await musicMetadata.parseBlob(file);
-      if (metadata.common.title && !titleOrName.trim()) {
-        setTitleOrName(metadata.common.title);
+      
+      if (metadata.format?.duration) {
+        setSingleDuration(Math.round(metadata.format.duration));
       }
-      if (metadata.common.picture && metadata.common.picture.length > 0 && !coverFile) {
+
+      if (metadata.common.title) {
+        setTitleOrName(metadata.common.title);
+      } else if (!titleOrName.trim()) {
+        const cleanName = file.name.replace(/\.[^/.]+$/, '');
+        setTitleOrName(cleanName);
+      }
+
+      if (metadata.common.genre && metadata.common.genre.length > 0 && !genre) {
+        setGenre(metadata.common.genre[0]);
+      }
+
+      if (!artistId && metadata.common.artist && availableArtists.length > 0) {
+        const matched = availableArtists.find(
+          a => a.name.toLowerCase() === metadata.common.artist.toLowerCase()
+        );
+        if (matched) {
+          setArtistId(matched.id);
+        }
+      }
+
+      if (metadata.common.picture && metadata.common.picture.length > 0) {
         const pic = metadata.common.picture[0];
         const blob = new Blob([pic.data], { type: pic.format });
         const cover = new File([blob], 'cover.jpg', { type: pic.format });
@@ -102,6 +128,9 @@ export default function UploadMusicModal({
       }
     } catch (err) {
       console.warn('Метаданные не найдены:', err);
+      if (!titleOrName.trim()) {
+        setTitleOrName(file.name.replace(/\.[^/.]+$/, ''));
+      }
     }
   };
 
@@ -122,9 +151,13 @@ export default function UploadMusicModal({
     for (let i = 0; i < audioFiles.length; i++) {
       const file = audioFiles[i];
       let trackTitle = file.name.replace(/\.[^/.]+$/, '');
+      let duration = 0;
 
       try {
         const metadata = await musicMetadata.parseBlob(file);
+        if (metadata.format?.duration) {
+          duration = Math.round(metadata.format.duration);
+        }
         if (metadata.common.title) {
           trackTitle = metadata.common.title;
         }
@@ -145,7 +178,7 @@ export default function UploadMusicModal({
         console.warn('Не удалось прочитать теги файла:', file.name, err);
       }
 
-      parsedSlots.push({ title: trackTitle, audio: file, collaboratorIds: [] });
+      parsedSlots.push({ title: trackTitle, audio: file, duration, collaboratorIds: [] });
     }
 
     setAlbumTracks(prev => {
@@ -201,20 +234,9 @@ export default function UploadMusicModal({
         if (coverFile) formData.append('avatar', coverFile);
       } else if (uploadType === 'single') {
         endpoint = '/api/upload/single';
-        let singleFinalTitle = titleOrName.trim();
-        if (selectedCollaborators.length > 0) {
-          const collabNames = availableArtists
-            .filter(a => selectedCollaborators.includes(a.id))
-            .map(a => a.name)
-            .join(', ');
-
-          if (collabNames) {
-            singleFinalTitle = `${singleFinalTitle} (feat. ${collabNames})`;
-          }
-        }
-
-        formData.append('title', singleFinalTitle);
+        formData.append('title', titleOrName.trim());
         formData.append('artist_id', artistId);
+        formData.append('duration_seconds', singleDuration || 0);
         selectedCollaborators.forEach(id => formData.append('collaborator_ids[]', id));
         if (coverFile) formData.append('cover', coverFile);
         if (singleAudio) formData.append('audio', singleAudio);
@@ -227,23 +249,11 @@ export default function UploadMusicModal({
         albumTracks
           .filter(t => t.title.trim() && t.audio)
           .forEach((track, idx) => {
-            let trackFinalTitle = track.title.trim();
-            const trackCollabs = track.collaboratorIds || [];
-
-            if (trackCollabs.length > 0) {
-              const names = availableArtists
-                .filter(a => trackCollabs.includes(a.id))
-                .map(a => a.name)
-                .join(', ');
-              if (names) {
-                trackFinalTitle = `${trackFinalTitle} (feat. ${names})`;
-              }
-            }
-
-            formData.append(`tracks[${idx}][title]`, trackFinalTitle);
+            formData.append(`tracks[${idx}][title]`, track.title.trim());
             formData.append(`tracks[${idx}][audio]`, track.audio);
+            formData.append(`tracks[${idx}][duration_seconds]`, track.duration || 0);
 
-            trackCollabs.forEach(cId => {
+            (track.collaboratorIds || []).forEach(cId => {
               formData.append(`tracks[${idx}][collaborator_ids][]`, cId);
             });
           });
@@ -258,7 +268,8 @@ export default function UploadMusicModal({
         setCoverFile(null);
         setCoverPreview('');
         setSingleAudio(null);
-        setAlbumTracks([{ title: '', audio: null, collaboratorIds: [] }]);
+        setSingleDuration(0);
+        setAlbumTracks([{ title: '', audio: null, duration: 0, collaboratorIds: [] }]);
         setSelectedCollaborators([]);
         if (onSuccess) onSuccess();
         onClose();
@@ -435,9 +446,21 @@ export default function UploadMusicModal({
               <div className="auth-form-group">
                 <div className="track-list-header">
                   <label>Список треков альбома ({albumTracks.length} шт.):</label>
-                  <button type="button" className="track-list-add-btn" onClick={handleAddTrackSlot}>
-                    + Добавить слот
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {albumTracks.length > 0 && (
+                      <button 
+                        type="button" 
+                        className="track-list-add-btn" 
+                        style={{ color: '#ef4444' }} 
+                        onClick={() => setAlbumTracks([{ title: '', audio: null, duration: 0, collaboratorIds: [] }])}
+                      >
+                        Очистить все
+                      </button>
+                    )}
+                    <button type="button" className="track-list-add-btn" onClick={handleAddTrackSlot}>
+                      + Добавить слот
+                    </button>
+                  </div>
                 </div>
 
                 <div

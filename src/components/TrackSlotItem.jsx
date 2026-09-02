@@ -140,13 +140,13 @@ export default function TrackSlotItem({
           </button>
         </div>
 
-        {total > 1 && onRemove && (
+        {onRemove && (
           <button
             type="button"
             className="track-slot-remove-btn"
             onClick={() => onRemove(index)}
             disabled={disabled}
-            title="Удалить слот"
+            title="Удалить слот трека"
           >
             <img src={closeIcon} alt="Удалить" />
           </button>

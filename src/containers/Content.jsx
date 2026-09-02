@@ -13,7 +13,6 @@ import close_icon from '../assets/close-icon.svg';
 
 import '../styles/Content.css';
 
-
 export default function Content() {
   const [isArtistModalOpen, setIsArtistModalOpen] = useState(false);
   const [artists, setArtists] = useState([]);
@@ -101,7 +100,7 @@ export default function Content() {
                       key={track.id}
                       index={idx}
                       track={track}
-                      isPlaying={currentTrack?.id === track.id && isPlaying}
+                      isPlaying={currentTrack && String(currentTrack.id) === String(track.id) && isPlaying}
                       onPlay={() => playTrack(track, topTracks)}
                     />
                   ))}

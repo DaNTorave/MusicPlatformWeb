@@ -148,6 +148,10 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
   const isAlbum = item.type === 'album';
   const isSinglePlaying = currentTrack?.id === item.id && isPlaying;
 
+  const handleRemoveTrack = (index) => {
+    setTracks(prev => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <div className="modal-background" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal-window moderation-modal" style={{ maxWidth: '680px' }}>
@@ -226,6 +230,7 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
                       total={tracks.length}
                       onChange={handleTrackChange}
                       onMove={moveTrack}
+                      onRemove={handleRemoveTrack} // <--- ДОБАВЛЕНО
                       showPlay
                       onPlay={handlePlayAlbumTrack}
                       isPlaying={currentTrack?.id === track.id && isPlaying}
