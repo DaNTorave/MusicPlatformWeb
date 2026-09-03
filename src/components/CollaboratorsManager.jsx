@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-
-import close_icon from '../assets/close-icon.svg'
+import close_icon from '../assets/close-icon.svg';
 
 export default function CollaboratorsManager({
   mainArtist,
@@ -39,15 +38,18 @@ export default function CollaboratorsManager({
   };
 
   return (
-    <div className="auth-form-group">
-      <label>Авторы и соавторы трека/релиза:</label>
+    <div className="meta-box-card">
+      <div className="meta-box-header">
+        <span className="meta-box-title">Авторы и соавторы</span>
+      </div>
 
       {!disabled && (
         <div className="collab-search-container">
           <input
             type="text"
             className="input-element"
-            placeholder="Введите имя артиста для добавления в соавторы..."
+            style={{ padding: '9px 14px', fontSize: '0.9rem' }}
+            placeholder="Поиск артиста для добавления в соавторы..."
             value={searchQuery}
             onFocus={() => setIsDropdownOpen(true)}
             onChange={(e) => {
@@ -59,17 +61,18 @@ export default function CollaboratorsManager({
           {isDropdownOpen && searchQuery.trim() && (
             <div className="collab-dropdown-menu">
               {filteredSuggestions.length === 0 ? (
-                <div className="collab-dropdown-item" style={{ color: '#888' }}>
+                <div className="collab-dropdown-item" style={{ color: '#94a3b8' }}>
                   Артист не найден
                 </div>
               ) : (
                 filteredSuggestions.map((artist) => (
                   <div
                     key={artist.id}
-                    className="collab-dropdown-item"
+                    className="entity-dropdown-item"
                     onClick={() => handleAddCollaborator(artist.id)}
                   >
-                    + {artist.name} ({artist.genre})
+                    <span>+ {artist.name}</span>
+                    {artist.genre && <span className="entity-genre-text">{artist.genre}</span>}
                   </div>
                 ))
               )}
@@ -78,13 +81,14 @@ export default function CollaboratorsManager({
         </div>
       )}
 
-      <div className="collab-order-list">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {mainArtist && (
-          <div className="collab-order-item main-author">
-            <span className="collab-order-name">
-              #1 {mainArtist.name} (Основной исполнитель)
-            </span>
-            <span style={{ fontSize: '0.75rem', color: '#3b82f6' }}>Основной автор</span>
+          <div className="entity-card-row is-main">
+            <div className="entity-card-left">
+              <span className="entity-order-index">#1</span>
+              <span className="entity-name-text">{mainArtist.name}</span>
+            </div>
+            <span className="entity-badge main-badge">Основной</span>
           </div>
         )}
 
@@ -93,38 +97,40 @@ export default function CollaboratorsManager({
           if (!artist) return null;
 
           return (
-            <div key={artist.id} className="collab-order-item">
-              <span className="collab-order-name">
-                #{idx + 2} {artist.name}
-              </span>
+            <div key={artist.id} className="entity-card-row">
+              <div className="entity-card-left">
+                <span className="entity-order-index">#{idx + 2}</span>
+                <span className="entity-name-text">{artist.name}</span>
+                {artist.genre && <span className="entity-genre-text">({artist.genre})</span>}
+              </div>
 
               {!disabled && (
-                <div className="collab-order-controls">
+                <div className="entity-card-actions">
                   <button
                     type="button"
-                    className="collab-arrow-btn"
+                    className="entity-icon-btn"
                     disabled={idx === 0}
                     onClick={() => handleMove(idx, -1)}
-                    title="Переместить выше"
+                    title="Выше"
                   >
                     ▲
                   </button>
                   <button
                     type="button"
-                    className="collab-arrow-btn"
+                    className="entity-icon-btn"
                     disabled={idx === collaboratorIds.length - 1}
                     onClick={() => handleMove(idx, 1)}
-                    title="Переместить ниже"
+                    title="Ниже"
                   >
                     ▼
                   </button>
                   <button
                     type="button"
-                    className="collab-remove-btn"
+                    className="entity-icon-btn remove-btn"
                     onClick={() => handleRemoveCollaborator(artist.id)}
-                    title="Удалить соавтора"
+                    title="Удалить"
                   >
-                    <img src={close_icon} alt='удалить'/>
+                    <img src={close_icon} alt="Удалить" />
                   </button>
                 </div>
               )}

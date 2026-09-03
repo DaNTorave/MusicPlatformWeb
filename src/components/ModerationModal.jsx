@@ -5,6 +5,7 @@ import { apiClient } from '../api/apiClient';
 import Button from './Button';
 import TrackSlotItem from './TrackSlotItem';
 import CollaboratorsManager from './CollaboratorsManager';
+import OriginalTrackManager from './OriginalTrackManager';
 
 import playIcon from '../assets/play-icon.svg';
 import pauseIcon from '../assets/pause-icon.svg';
@@ -19,7 +20,11 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
   const [rejectReason, setRejectReason] = useState('');
   const [tracks, setTracks] = useState([]);
   const [availableArtists, setAvailableArtists] = useState([]);
+  const [availableTracks, setAvailableTracks] = useState([]);
   const [collaborators, setCollaborators] = useState([]);
+
+  const [isCover, setIsCover] = useState(false);
+  const [originalTrackId, setOriginalTrackId] = useState(null);
 
   const { playTrack, currentTrack, isPlaying, updateTrackTitle, updateTrackCover, stopPlayer } = useAudioPlayer();
 
@@ -27,6 +32,9 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
     if (isOpen) {
       apiClient.request('/api/artists').then((res) => {
         if (res?.data) setAvailableArtists(res.data);
+      });
+      apiClient.request('/api/charts/tracks').then((res) => {
+        if (res?.data) setAvailableTracks(res.data);
       });
     }
   }, [isOpen]);
@@ -38,7 +46,15 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
       setRejectReason('');
       setCoverFile(null);
       setAudioFile(null);
-      setTracks((item.tracks || []).map((t) => ({ ...t, audioFile: null })));
+      setTracks((item.tracks || []).map((t) => ({
+        ...t,
+        audioFile: null,
+        is_cover: Boolean(t.is_cover || t.original_track_id),
+        original_track_id: t.original_track_id || null
+      })));
+
+      setIsCover(Boolean(item.is_cover || item.original_track_id));
+      setOriginalTrackId(item.original_track_id || null);
 
       const existingCollabs = (item.collaborators || []).map((c) => c.id);
       setCollaborators(existingCollabs);
@@ -89,13 +105,19 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
     });
   };
 
+  const handleRemoveTrack = (index) => {
+    setTracks(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handlePlaySingle = () => {
     playTrack({
       id: item.id,
       title: title || item.title,
       cover: coverPreview,
       streamUrl: audioFile ? URL.createObjectURL(audioFile) : null,
-      artist: { name: item.artist_info?.name || 'Модерация' }
+      artist: { name: item.artist_info?.name || 'Модерация' },
+      is_cover: isCover,
+      original_track: availableTracks.find(t => String(t.id) === String(originalTrackId))
     });
   };
 
@@ -105,7 +127,9 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
       title: track.title,
       cover: coverPreview,
       streamUrl: track.audioFile ? URL.createObjectURL(track.audioFile) : null,
-      artist: { name: item.artist_info?.name || 'Модерация' }
+      artist: { name: item.artist_info?.name || 'Модерация' },
+      is_cover: track.is_cover,
+      original_track: availableTracks.find(t => String(t.id) === String(track.original_track_id))
     });
   };
 
@@ -123,12 +147,23 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
     if (coverFile) formData.append('cover', coverFile);
     if (audioFile) formData.append('audio', audioFile);
 
+    if (schemaType === 'track') {
+      formData.append('is_cover', isCover ? 'true' : 'false');
+      if (isCover && originalTrackId) {
+        formData.append('original_track_id', originalTrackId);
+      }
+    }
+
     collaborators.forEach((id) => formData.append('collaborator_ids[]', id));
 
     if (item.type === 'album') {
       tracks.forEach((track, idx) => {
         formData.append(`tracks[${idx}][id]`, track.id);
         formData.append(`tracks[${idx}][title]`, track.title);
+        formData.append(`tracks[${idx}][is_cover]`, track.is_cover ? 'true' : 'false');
+        if (track.is_cover && track.original_track_id) {
+          formData.append(`tracks[${idx}][original_track_id]`, track.original_track_id);
+        }
         if (track.audioFile) formData.append(`tracks[${idx}][audio]`, track.audioFile);
       });
     }
@@ -148,9 +183,24 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
   const isAlbum = item.type === 'album';
   const isSinglePlaying = currentTrack?.id === item.id && isPlaying;
 
-  const handleRemoveTrack = (index) => {
-    setTracks(prev => prev.filter((_, i) => i !== index));
-  };
+  const isApproveDisabled = (() => {
+    if (loading) return true;
+    if (!title.trim()) return true;
+
+    if (isSingleAudio) {
+      if (isCover && !originalTrackId) return true;
+    }
+
+    if (isAlbum) {
+      if (tracks.length === 0) return true;
+      const hasEmptyTitle = tracks.some(t => !t.title.trim());
+      if (hasEmptyTitle) return true;
+      const hasIncompleteCover = tracks.some(t => t.is_cover && !t.original_track_id);
+      if (hasIncompleteCover) return true;
+    }
+
+    return false;
+  })();
 
   return (
     <div className="modal-background" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -175,13 +225,14 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
             </div>
 
             <div className="auth-form-group">
-              <label>{isAlbum ? 'Название альбома' : 'Название'}</label>
+              <label>{isAlbum ? 'Название альбома' : 'Название'} *</label>
               <input
                 type="text"
                 value={title}
                 onChange={handleSingleTitleChange}
                 placeholder="Введите название"
                 disabled={loading}
+                required
               />
             </div>
 
@@ -193,6 +244,34 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
                 onChange={setCollaborators}
                 disabled={loading}
               />
+            )}
+
+            {isSingleAudio && (
+              <div className="meta-box-card">
+                <div className="meta-box-header">
+                  <label className="meta-switch-label">
+                    <input
+                      type="checkbox"
+                      checked={isCover}
+                      onChange={(e) => {
+                        setIsCover(e.target.checked);
+                        if (!e.target.checked) setOriginalTrackId(null);
+                      }}
+                      disabled={loading}
+                    />
+                    Кавер
+                  </label>
+                </div>
+
+                {isCover && (
+                  <OriginalTrackManager
+                    availableTracks={availableTracks}
+                    selectedTrackId={originalTrackId}
+                    onChange={setOriginalTrackId}
+                    disabled={loading}
+                  />
+                )}
+              </div>
             )}
 
             {isSingleAudio && (
@@ -230,11 +309,14 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
                       total={tracks.length}
                       onChange={handleTrackChange}
                       onMove={moveTrack}
-                      onRemove={handleRemoveTrack} // <--- ДОБАВЛЕНО
+                      onRemove={handleRemoveTrack}
                       showPlay
                       onPlay={handlePlayAlbumTrack}
                       isPlaying={currentTrack?.id === track.id && isPlaying}
                       disabled={loading}
+                      availableArtists={availableArtists}
+                      availableTracks={availableTracks}
+                      mainArtist={item.artist_info}
                     />
                   ))}
                 </div>
@@ -243,7 +325,12 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
 
             <div className="moderation-actions">
               <div className="moderation-action-group">
-                <Button type="button" variant="primary" disabled={loading} onClick={() => handleSubmit('approve')}>
+                <Button 
+                  type="button" 
+                  variant="primary" 
+                  disabled={isApproveDisabled} 
+                  onClick={() => handleSubmit('approve')}
+                >
                   {loading ? 'Сохранение...' : 'Одобрить'}
                 </Button>
               </div>

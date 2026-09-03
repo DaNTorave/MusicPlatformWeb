@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 
 import CollaboratorsManager from './CollaboratorsManager';
+import OriginalTrackManager from './OriginalTrackManager';
 
 import closeIcon from '../assets/close-icon.svg';
 import playIcon from '../assets/play-icon.svg';
@@ -18,17 +19,31 @@ export default function TrackSlotItem({
   showPlay = false,
   disabled = false,
   availableArtists = [],
+  availableTracks = [],
   mainArtist = null
 }) {
   const fileInputRef = useRef(null);
   const [showCollaborators, setShowCollaborators] = useState(false);
+  const [showCoverPanel, setShowCoverPanel] = useState(() => Boolean(track.is_cover));
 
   const hasAudio = Boolean(track.audio || track.audioFile || track.audio_uuid || track.id);
   const audioName = track.audio?.name || track.audioFile?.name;
   const collaboratorIds = track.collaboratorIds || [];
+  const isCover = Boolean(track.is_cover);
 
   const handleCollaboratorsChange = (newIds) => {
     onChange(index, 'collaboratorIds', newIds);
+  };
+
+  const toggleCover = () => {
+    const nextState = !isCover;
+    onChange(index, 'is_cover', nextState);
+    if (!nextState) {
+      onChange(index, 'original_track_id', null);
+      setShowCoverPanel(false);
+    } else {
+      setShowCoverPanel(true);
+    }
   };
 
   return (
@@ -38,8 +53,8 @@ export default function TrackSlotItem({
       gap: '8px',
       background: '#fcfafafa',
       border: '1px solid #e8e0e0',
-      borderRadius: '12px',
-      padding: '10px'
+      borderRadius: '14px',
+      padding: '12px'
     }}>
       <div
         className="track-slot-row"
@@ -108,18 +123,38 @@ export default function TrackSlotItem({
             onClick={() => setShowCollaborators(!showCollaborators)}
             disabled={disabled}
             style={{
-              padding: '6px 10px',
+              padding: '7px 11px',
               fontSize: '0.8rem',
-              fontWeight: 600,
-              color: collaboratorIds.length > 0 ? '#1773cf' : '#555',
-              background: collaboratorIds.length > 0 ? '#e0f2fe' : '#eee',
-              border: collaboratorIds.length > 0 ? '1px solid #bae6fd' : 'none'
+              fontWeight: 700,
+              color: collaboratorIds.length > 0 ? '#1d4ed8' : '#475569',
+              background: collaboratorIds.length > 0 ? '#dbeafe' : '#f1f5f9',
+              border: collaboratorIds.length > 0 ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
+              borderRadius: '8px'
             }}
             title="Настроить соавторов трека"
           >
             {collaboratorIds.length > 0 ? `Соавторы (${collaboratorIds.length})` : '+ Соавтор'}
           </button>
         )}
+
+        <button
+          type="button"
+          className="track-slot-nav-btn"
+          onClick={toggleCover}
+          disabled={disabled}
+          style={{
+            padding: '7px 11px',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            color: isCover ? '#15803d' : '#475569',
+            background: isCover ? '#dcfce7' : '#f1f5f9',
+            border: isCover ? '1px solid #bbf7d0' : '1px solid #e2e8f0',
+            borderRadius: '8px'
+          }}
+          title="Отметить трек как кавер"
+        >
+          {isCover ? '✓ Кавер' : '+ Кавер'}
+        </button>
 
         <div className="track-slot-arrows">
           <button
@@ -146,21 +181,29 @@ export default function TrackSlotItem({
             className="track-slot-remove-btn"
             onClick={() => onRemove(index)}
             disabled={disabled}
-            title="Удалить слот трека"
+            title="Удалить трек"
           >
             <img src={closeIcon} alt="Удалить" />
           </button>
         )}
       </div>
 
+      {isCover && showCoverPanel && (
+        <div className="meta-box-card" style={{ marginTop: '4px', background: '#fdfbfb' }}>
+          <div className="meta-box-header">
+            <span className="meta-box-title">Оригинальный трек для кавера</span>
+          </div>
+          <OriginalTrackManager
+            availableTracks={availableTracks}
+            selectedTrackId={track.original_track_id}
+            onChange={(trackId) => onChange(index, 'original_track_id', trackId)}
+            disabled={disabled}
+          />
+        </div>
+      )}
+
       {showCollaborators && mainArtist && (
-        <div style={{
-          marginTop: '6px',
-          padding: '12px',
-          background: '#ffffff',
-          borderRadius: '10px',
-          border: '1px solid #e2e8f0'
-        }}>
+        <div style={{ marginTop: '4px' }}>
           <CollaboratorsManager
             mainArtist={mainArtist}
             availableArtists={availableArtists}

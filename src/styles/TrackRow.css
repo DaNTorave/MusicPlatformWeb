@@ -228,3 +228,36 @@
 .artist-separator {
   color: #999;
 }
+
+.track-row-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.track-cover-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: lowercase;
+  color: #1773cf;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  padding: 1px 7px;
+  border-radius: 6px;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.track-cover-badge.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.track-cover-badge.clickable:hover {
+  background: #1773cf;
+  color: #ffffff;
+  border-color: #1773cf;
+  transform: translateY(-1px);
+}

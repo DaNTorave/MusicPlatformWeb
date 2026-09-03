@@ -74,13 +74,42 @@ export default function GlobalPlayer() {
     });
   }
 
+  const originalTrack = currentTrack.original_track;
+  const isCover = currentTrack.is_cover || Boolean(originalTrack);
+
   return (
     <div className="global-player-bar">
       <div className="player-track-info">
         <img src={currentTrack.cover || defaultCover} alt="cover" className="player-cover" />
         <div className="player-track-meta">
-          <div className="player-title" title={currentTrack.title}>{currentTrack.title}</div>
-          <div className="player-artists-container" style={{ fontSize: '0.8rem', color: '#a0a0a0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div className="player-title-row">
+            <div className="player-title" title={currentTrack.title}>
+              {currentTrack.title}
+              {isCover && (
+              <span
+                className={`player-cover-badge ${originalTrack ? 'clickable' : ''}`}
+                onClick={() => {
+                  if (originalTrack) {
+                    playTrack({
+                      ...originalTrack,
+                      cover: originalTrack.cover || currentTrack.cover || defaultCover,
+                      artist: originalTrack.artist || { name: 'Исполнитель' }
+                    });
+                  }
+                }}
+                title={
+                  originalTrack
+                    ? `Оригинал: ${originalTrack.title} — ${originalTrack.artist?.name || ''} (нажмите для включения)`
+                    : 'Кавер'
+                }
+              >
+                кавер
+              </span>
+            )}
+            </div>
+          </div>
+
+          <div className="player-artists-container">
             {allArtists.map((art, idx) => (
               <React.Fragment key={art.id || idx}>
                 {art.id ? (

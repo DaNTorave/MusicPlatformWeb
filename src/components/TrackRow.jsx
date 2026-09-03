@@ -72,6 +72,20 @@ export default function TrackRow({
     });
   }
 
+  const originalTrack = track.original_track;
+  const isCover = track.is_cover || Boolean(track.original_track_id) || Boolean(originalTrack);
+
+  const handleCoverClick = (e) => {
+    e.stopPropagation();
+    if (originalTrack && onPlay) {
+      onPlay({
+        ...originalTrack,
+        cover: originalTrack.cover || track.cover || defaultCover,
+        artist: originalTrack.artist || { name: 'Исполнитель' }
+      });
+    }
+  };
+
   return (
     <div 
       className={`track-row-item ${isPlaying ? 'active' : ''}`}
@@ -99,7 +113,22 @@ export default function TrackRow({
       </div>
 
       <div className="track-row-main">
-        <span className="track-row-title" title={track.title}>{track.title}</span>
+        <div className="track-row-title-container">
+          <span className="track-row-title" title={track.title}>{track.title}</span>
+          {isCover && (
+            <span
+              className={`track-cover-badge ${originalTrack ? 'clickable' : ''}`}
+              onClick={handleCoverClick}
+              title={
+                originalTrack
+                  ? `Оригинал: ${originalTrack.title} (${originalTrack.artist?.name || 'Артист'}) — Нажмите для воспроизведения`
+                  : 'Кавер-версия'
+              }
+            >
+              кавер
+            </span>
+          )}
+        </div>
         
         <div className="track-row-artists-list" onClick={(e) => e.stopPropagation()}>
           {artistsList.length > 0 ? (
