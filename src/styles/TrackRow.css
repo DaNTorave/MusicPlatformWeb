@@ -261,3 +261,12 @@
   border-color: #1773cf;
   transform: translateY(-1px);
 }
+
+.track-action-btn.download-btn:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+.track-action-btn.download-btn:hover .action-icon {
+  filter: invert(36%) sepia(85%) saturate(1633%) hue-rotate(193deg) brightness(91%) contrast(92%);
+}

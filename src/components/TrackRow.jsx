@@ -7,6 +7,7 @@ import playIcon from '../assets/play-icon.svg';
 import pauseIcon from '../assets/pause-icon.svg';
 import editIcon from '../assets/edit-icon.svg';
 import closeIcon from '../assets/close-icon.svg';
+import downloadIcon from '../assets/download-icon.svg';
 
 import '../styles/TrackRow.css';
 
@@ -86,6 +87,17 @@ export default function TrackRow({
     }
   };
 
+  const handleDownload = (e) => {
+    e.stopPropagation();
+    if (!track.id) return;
+    const link = document.createElement('a');
+    link.href = `/api/download/${track.id}`;
+    link.download = `${track.title || 'track'}.mp3`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div 
       className={`track-row-item ${isPlaying ? 'active' : ''}`}
@@ -99,6 +111,7 @@ export default function TrackRow({
           alt={track.title}
           className="track-row-cover"
         />
+
         <button 
           type="button" 
           className={`track-cover-play-btn ${isPlaying ? 'visible' : ''}`}
@@ -155,6 +168,14 @@ export default function TrackRow({
       </div>
 
       <div className="track-row-actions" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className="track-action-btn download-btn"
+          onClick={handleDownload}
+          title="Скачать трек"
+        >
+          <img src={downloadIcon} alt="Скачать" className="action-icon" />
+        </button>
         <button
           type="button"
           className={`track-action-btn ${isFavorite ? 'active-fav' : ''}`}

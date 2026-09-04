@@ -62,6 +62,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialTab 
             onLoginSuccess();
         }
         handleClose();
+        window.location.reload();
     };
 
     if (!isOpen) return null;

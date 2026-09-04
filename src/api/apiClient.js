@@ -27,9 +27,11 @@ export const apiClient = {
     },
     getToken() { return localStorage.getItem('authToken'); },
 
+    // Запись токена
     setUser(user) { 
         if (user) {
             localStorage.setItem('user', JSON.stringify(user));
+            window.dispatchEvent(new CustomEvent('auth:login'));
         } else {
             localStorage.removeItem('user');
         }

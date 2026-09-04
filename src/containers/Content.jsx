@@ -19,6 +19,7 @@ export default function Content() {
   const [topTracks, setTopTracks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingArtist, setEditingArtist] = useState(null);
+  const [chartLimit, setChartLimit] = useState(10);
 
   const navigate = useNavigate();
   const { playTrack, currentTrack, isPlaying } = useAudioPlayer();
@@ -32,7 +33,6 @@ export default function Content() {
         apiClient.request('/api/artists'),
         apiClient.request('/api/charts/tracks')
       ]);
-
       if (artistsRes?.data) setArtists(artistsRes.data);
       if (tracksRes?.data) setTopTracks(tracksRes.data);
     } catch (e) {
@@ -57,6 +57,8 @@ export default function Content() {
     }
   };
 
+  const displayedTracks = topTracks.slice(0, chartLimit);
+
   return (
     <>
       <CreateArtistModal
@@ -64,7 +66,6 @@ export default function Content() {
         onClose={() => setIsArtistModalOpen(false)}
         onSuccess={() => fetchData()}
       />
-
       <EditEntityModal
         isOpen={Boolean(editingArtist)}
         onClose={() => setEditingArtist(null)}
@@ -88,20 +89,35 @@ export default function Content() {
 
           <div className="artists-catalog-section" style={{ gap: '2.5rem' }}>
             <div>
-              <h2 className="section-heading" style={{ marginBottom: '1rem' }}>Топ чарт треков</h2>
+              <div className="chart-header-row">
+                <h2 className="section-heading" style={{ margin: 0 }}>Топ чарт треков</h2>
+                <div className="chart-filter-buttons">
+                  {[10, 50, 100].map((limit) => (
+                    <button
+                      key={limit}
+                      type="button"
+                      className={`chart-filter-btn ${chartLimit === limit ? 'active' : ''}`}
+                      onClick={() => setChartLimit(limit)}
+                    >
+                      Топ-{limit}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {loading ? (
                 <p className="status-message">Загрузка чарта...</p>
               ) : topTracks.length === 0 ? (
                 <p className="empty-catalog-text">Пока нет треков в чарте.</p>
               ) : (
-                <div className="album-tracks-container">
-                  {topTracks.map((track, idx) => (
+                <div className="album-tracks-container scrollable-chart-list">
+                  {displayedTracks.map((track, idx) => (
                     <TrackRow
                       key={track.id}
                       index={idx}
                       track={track}
                       isPlaying={currentTrack && String(currentTrack.id) === String(track.id) && isPlaying}
-                      onPlay={() => playTrack(track, topTracks)}
+                      onPlay={() => playTrack(track, displayedTracks)}
                     />
                   ))}
                 </div>
@@ -130,7 +146,7 @@ export default function Content() {
                             onClick={() => setEditingArtist(artist)}
                             title="Редактировать артиста"
                           >
-                            <img src={edit_icon} alt='изменить' width='14px'/>
+                            <img src={edit_icon} alt="изменить" width="14px" />
                           </button>
                           <button
                             type="button"
@@ -138,16 +154,11 @@ export default function Content() {
                             onClick={(e) => handleDeleteArtist(e, artist.id)}
                             title="Удалить артиста"
                           >
-                            <img src={close_icon} alt='удалить' width='14px'/>
+                            <img src={close_icon} alt="удалить" width="14px" />
                           </button>
                         </div>
                       )}
-
-                      <img
-                        src={artist.avatar || defaultAvatar}
-                        alt={artist.name}
-                        className="artist-card-avatar"
-                      />
+                      <img src={artist.avatar || defaultAvatar} alt={artist.name} className="artist-card-avatar" />
                       <div className="artist-card-info">
                         <h3 className="artist-card-name">{artist.name}</h3>
                         <span className="artist-card-genre">{artist.genre}</span>
