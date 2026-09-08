@@ -3,6 +3,7 @@
   flex-direction: column;
   gap: 6px;
   width: 100%;
+  position: relative;
 }
 
 .input-label {
@@ -27,16 +28,23 @@
 .input-element {
   width: 100%;
   padding: 13px 16px;
-  padding-right: 44px;
-  border-radius: 12px;
+  border-radius: 14px;
   background: #fcfafafa;
   border: 2px solid #e8e0e0;
   color: #14161a;
-  font-size: 1rem;
+  font-size: 0.98rem;
   outline: none;
   font-family: inherit;
   transition: all 0.25s ease;
   box-sizing: border-box;
+}
+
+.input-element.with-left-icon {
+  padding-left: 44px;
+}
+
+.input-element.with-clear {
+  padding-right: 44px;
 }
 
 .input-element:hover {
@@ -47,8 +55,7 @@
 .input-element:focus {
   border-color: #1773cf;
   background: #ffffff;
-  box-shadow: 0 0 0 4px rgba(23, 115, 207, 0.1);
-  transform: translateY(-1px);
+  box-shadow: 0 0 0 4px rgba(23, 115, 207, 0.12);
 }
 
 .input-element.input-error {
@@ -60,6 +67,44 @@
   opacity: 0.6;
   cursor: not-allowed;
   background: #f5f0f0;
+}
+
+.input-left-icon {
+  position: absolute;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  color: #94a3b8;
+  z-index: 1;
+}
+
+.input-clear-button {
+  position: absolute;
+  right: 12px;
+  background: #e2e8f0;
+  border: none;
+  cursor: pointer;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.input-clear-button:hover {
+  background: #cbd5e1;
+  transform: scale(1.1);
+}
+
+.input-clear-button img {
+  width: 10px;
+  height: 10px;
+  opacity: 0.7;
 }
 
 .input-eye-button {
@@ -97,8 +142,4 @@
   background: rgba(231, 76, 60, 0.08);
   border-radius: 6px;
   border-left: 3px solid #e74c3c;
-}
-
-.input-error-text::before {
-  font-size: 0.9rem;
 }

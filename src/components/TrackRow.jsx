@@ -127,7 +127,14 @@ export default function TrackRow({
 
       <div className="track-row-main">
         <div className="track-row-title-container">
-          <span className="track-row-title" title={track.title}>{track.title}</span>
+          <Link 
+            to={`/tracks/${track.id}`} 
+            className="track-row-title track-row-title-link" 
+            title={track.title}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {track.title}
+          </Link>
           {isCover && (
             <span
               className={`track-cover-badge ${originalTrack ? 'clickable' : ''}`}

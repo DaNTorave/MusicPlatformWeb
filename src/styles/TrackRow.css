@@ -270,3 +270,13 @@
 .track-action-btn.download-btn:hover .action-icon {
   filter: invert(36%) sepia(85%) saturate(1633%) hue-rotate(193deg) brightness(91%) contrast(92%);
 }
+
+.track-row-title-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.track-row-title-link:hover {
+  color: #1773cf;
+  text-decoration: underline;
+}

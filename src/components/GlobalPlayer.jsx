@@ -83,12 +83,25 @@ export default function GlobalPlayer() {
         <img src={currentTrack.cover || defaultCover} alt="cover" className="player-cover" />
         <div className="player-track-meta">
           <div className="player-title-row">
-            <div className="player-title" title={currentTrack.title}>
-              {currentTrack.title}
-              {isCover && (
+            {currentTrack.id ? (
+              <Link 
+                to={`/tracks/${currentTrack.id}`} 
+                className="player-title player-title-link" 
+                title={currentTrack.title}
+              >
+                {currentTrack.title}
+              </Link>
+            ) : (
+              <span className="player-title" title={currentTrack.title}>
+                {currentTrack.title}
+              </span>
+            )}
+
+            {isCover && (
               <span
                 className={`player-cover-badge ${originalTrack ? 'clickable' : ''}`}
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   if (originalTrack) {
                     playTrack({
                       ...originalTrack,
@@ -106,7 +119,6 @@ export default function GlobalPlayer() {
                 кавер
               </span>
             )}
-            </div>
           </div>
 
           <div className="player-artists-container">
