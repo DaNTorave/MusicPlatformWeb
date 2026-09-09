@@ -261,6 +261,7 @@ export default function ArtistPage() {
                       {track.title}
                     </span>
                     <span className="media-card-subtitle">Сингл</span>
+                    <span className="media-card-subtitle">{track.release_year}</span>
                   </div>
 
                   {isStaff && (
@@ -329,6 +330,7 @@ export default function ArtistPage() {
                     <span className="media-card-subtitle">
                       {album.tracks?.length ? `${album.tracks.length} трек(ов)` : 'Альбом'}
                     </span>
+                    <span className="media-card-subtitle">{album.release_year}</span>
                   </div>
 
                   {isStaff && (

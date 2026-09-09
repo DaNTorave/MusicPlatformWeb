@@ -94,8 +94,8 @@ export default function AlbumPage() {
           <h1 className="artist-title">{album.title}</h1>
           <p className="artist-meta">
             Исполнитель: <Link to={`/artists/${album.artist?.id}`} className="artist-link">{album.artist?.name}</Link>
-            {album.release_year && ` • Год: ${album.release_year}`}
-            {album.likes_count > 0 && ` • Лайков: ${album.likes_count}`}
+            {album.release_year && ` Год: ${album.release_year}`}
+            {album.likes_count > 0 && ` Лайков: ${album.likes_count}`}
           </p>
 
           {isStaff && (

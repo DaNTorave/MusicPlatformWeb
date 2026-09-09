@@ -20,7 +20,7 @@ export default function TrackRow({
   canEdit = false,
   onDelete,
   canDelete = false,
-  showAlbumPosition = false
+  showAlbumPosition = false,
 }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [duration, setDuration] = useState(() => track.duration_seconds || track.duration || 0);
@@ -172,12 +172,6 @@ export default function TrackRow({
           )}
         </div>
       </div>
-
-      {track.release_year && (
-        <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginRight: '8px' }}>
-          {track.release_year}
-        </div>
-      )}
 
       <div className="track-row-duration">
         {formatDuration(duration)}
