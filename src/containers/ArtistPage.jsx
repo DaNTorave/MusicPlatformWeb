@@ -209,7 +209,7 @@ export default function ArtistPage() {
           <p className="empty-text">Нет доступных треков</p>
         ) : (
           <div className="album-tracks-container">
-            {popularTracks.slice(0, 5).map((track, idx) => (
+            {popularTracks.slice(0, 12).map((track, idx) => (
               <TrackRow
                 key={track.id}
                 index={idx}

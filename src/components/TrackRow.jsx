@@ -19,7 +19,8 @@ export default function TrackRow({
   onEdit,
   canEdit = false,
   onDelete,
-  canDelete = false
+  canDelete = false,
+  showAlbumPosition = false
 }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [duration, setDuration] = useState(() => track.duration_seconds || track.duration || 0);
@@ -98,12 +99,14 @@ export default function TrackRow({
     document.body.removeChild(link);
   };
 
+  const displayNum = showAlbumPosition && track.position ? track.position : index + 1;
+
   return (
     <div 
       className={`track-row-item ${isPlaying ? 'active' : ''}`}
       onClick={() => onPlay && onPlay(track)}
     >
-      <span className="track-row-num">{index + 1}</span>
+      <span className="track-row-num">{displayNum}</span>
 
       <div className="track-row-cover-wrapper">
         <img
@@ -170,19 +173,17 @@ export default function TrackRow({
         </div>
       </div>
 
+      {track.release_year && (
+        <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginRight: '8px' }}>
+          {track.release_year}
+        </div>
+      )}
+
       <div className="track-row-duration">
         {formatDuration(duration)}
       </div>
 
       <div className="track-row-actions" onClick={(e) => e.stopPropagation()}>
-        <button
-          type="button"
-          className="track-action-btn download-btn"
-          onClick={handleDownload}
-          title="Скачать трек"
-        >
-          <img src={downloadIcon} alt="Скачать" className="action-icon" />
-        </button>
         <button
           type="button"
           className={`track-action-btn ${isFavorite ? 'active-fav' : ''}`}
@@ -197,6 +198,15 @@ export default function TrackRow({
             alt="Favorite" 
             className={`action-icon ${isFavorite ? 'fav-icon-active' : ''}`} 
           />
+        </button>
+
+        <button
+          type="button"
+          className="track-action-btn download-btn"
+          onClick={handleDownload}
+          title="Скачать трек"
+        >
+          <img src={downloadIcon} alt="Скачать" className="action-icon" />
         </button>
 
         {canEdit && (

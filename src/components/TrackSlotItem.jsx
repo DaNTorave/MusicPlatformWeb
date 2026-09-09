@@ -68,8 +68,25 @@ export default function TrackSlotItem({
         }}
       >
         <span className="track-slot-handle" title="Перетащите для смены порядка">
-          ☰ #{index + 1}
+          ☰
         </span>
+
+        <input
+          type="number"
+          style={{
+            width: '46px',
+            padding: '6px 4px',
+            textAlign: 'center',
+            borderRadius: '8px',
+            border: '1px solid #e0d8d8',
+            fontWeight: 'bold',
+            fontSize: '0.85rem'
+          }}
+          value={track.position !== undefined && track.position !== null ? track.position : index + 1}
+          onChange={(e) => onChange(index, 'position', parseInt(e.target.value) || 1)}
+          title="Позиция трека в альбоме"
+          disabled={disabled}
+        />
 
         {showPlay && onPlay && (
           <button
@@ -85,7 +102,7 @@ export default function TrackSlotItem({
         <input
           type="text"
           className="track-slot-input-title"
-          placeholder={`Название трека #${index + 1}`}
+          placeholder={`Название трека #${track.position || index + 1}`}
           value={track.title}
           onChange={(e) => onChange(index, 'title', e.target.value)}
           required

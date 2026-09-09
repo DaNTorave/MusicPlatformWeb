@@ -97,7 +97,7 @@ export default function TrackPage() {
         <div className="track-page-meta">
           <div className="track-page-badges">
             <span className="track-badge-type">
-              {track.is_single ? 'Сингл' : 'Трек из альбома'}
+              {track.is_single ? 'Сингл' : `Трек #${track.position || 1} из альбома`}
             </span>
             {track.is_cover && <span className="track-badge-cover">Кавер</span>}
           </div>
@@ -126,6 +126,9 @@ export default function TrackPage() {
               <Link to={`/albums/${track.album.id}`} className="track-page-album-link">
                 {track.album.title}
               </Link>
+              {track.album.release_year && (
+                <span style={{ color: '#64748b' }}> ({track.album.release_year})</span>
+              )}
             </div>
           )}
 
@@ -137,6 +140,9 @@ export default function TrackPage() {
           )}
 
           <div className="track-page-stats">
+            {track.release_year && (
+              <>Год: <strong>{track.release_year}</strong> • </>
+            )}
             Длительность: <strong>{formatDuration(track.duration_seconds)}</strong> • Прослушиваний: <strong>{track.plays_count || 0}</strong>
           </div>
 

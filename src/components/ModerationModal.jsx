@@ -14,6 +14,7 @@ import '../styles/ModerationModal.css';
 
 export default function ModerationModal({ isOpen, onClose, item, onApprove, onReject, loading }) {
   const [title, setTitle] = useState('');
+  const [releaseYear, setReleaseYear] = useState('');
   const [coverFile, setCoverFile] = useState(null);
   const [coverPreview, setCoverPreview] = useState('');
   const [audioFile, setAudioFile] = useState(null);
@@ -42,12 +43,15 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
   useEffect(() => {
     if (item) {
       setTitle(item.title || item.name || '');
+      setReleaseYear(item.release_year ? String(item.release_year) : '');
       setCoverPreview(item.cover || item.avatar || '');
       setRejectReason('');
       setCoverFile(null);
       setAudioFile(null);
-      setTracks((item.tracks || []).map((t) => ({
+      setTracks((item.tracks || []).map((t, idx) => ({
         ...t,
+        position: t.position || idx + 1,
+        release_year: t.release_year ? String(t.release_year) : '',
         audioFile: null,
         is_cover: Boolean(t.is_cover || t.original_track_id),
         original_track_id: t.original_track_id || null
@@ -101,7 +105,7 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
       const updated = [...prev];
       const [moved] = updated.splice(fromIndex, 1);
       updated.splice(toIndex, 0, moved);
-      return updated;
+      return updated.map((t, idx) => ({ ...t, position: idx + 1 }));
     });
   };
 
@@ -143,12 +147,14 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
     formData.append('schema', schemaType);
     formData.append('id', item.id);
     formData.append('title', title);
+    if (releaseYear) formData.append('release_year', releaseYear);
 
     if (coverFile) formData.append('cover', coverFile);
     if (audioFile) formData.append('audio', audioFile);
 
     if (schemaType === 'track') {
       formData.append('is_cover', isCover ? 'true' : 'false');
+      formData.append('position', 1);
       if (isCover && originalTrackId) {
         formData.append('original_track_id', originalTrackId);
       }
@@ -158,8 +164,10 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
 
     if (item.type === 'album') {
       tracks.forEach((track, idx) => {
-        formData.append(`tracks[${idx}][id]`, track.id);
+        if (track.id) formData.append(`tracks[${idx}][id]`, track.id);
         formData.append(`tracks[${idx}][title]`, track.title);
+        formData.append(`tracks[${idx}][position]`, track.position || idx + 1);
+        formData.append(`tracks[${idx}][release_year]`, track.release_year || releaseYear || '');
         formData.append(`tracks[${idx}][is_cover]`, track.is_cover ? 'true' : 'false');
         if (track.is_cover && track.original_track_id) {
           formData.append(`tracks[${idx}][original_track_id]`, track.original_track_id);
@@ -235,6 +243,19 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
                 required
               />
             </div>
+
+            {item.type !== 'artist' && (
+              <div className="auth-form-group">
+                <label>Год выпуска</label>
+                <input
+                  type="number"
+                  value={releaseYear}
+                  onChange={(e) => setReleaseYear(e.target.value)}
+                  placeholder="2026"
+                  disabled={loading}
+                />
+              </div>
+            )}
 
             {item.artist_info && (
               <CollaboratorsManager

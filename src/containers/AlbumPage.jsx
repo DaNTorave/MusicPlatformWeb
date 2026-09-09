@@ -66,7 +66,7 @@ export default function AlbumPage() {
   if (error || !album) return <div className="artist-page-state error">{error || 'Альбом не найден'}</div>;
 
   const formattedAlbumTracks = [...(album.tracks || [])]
-    .sort((a, b) => (a.id || 0) - (b.id || 0))
+    .sort((a, b) => (a.position || a.id || 0) - (b.position || b.id || 0))
     .map(t => ({
       ...t,
       cover: t.cover || album.cover,
@@ -94,6 +94,7 @@ export default function AlbumPage() {
           <h1 className="artist-title">{album.title}</h1>
           <p className="artist-meta">
             Исполнитель: <Link to={`/artists/${album.artist?.id}`} className="artist-link">{album.artist?.name}</Link>
+            {album.release_year && ` • Год: ${album.release_year}`}
             {album.likes_count > 0 && ` • Лайков: ${album.likes_count}`}
           </p>
 
@@ -101,7 +102,7 @@ export default function AlbumPage() {
             <div style={{ marginTop: '12px' }}>
               <Button 
                 variant="secondary" 
-                fullWidth={false}
+                fullWidth={false} 
                 onClick={() => setEditModal({ isOpen: true, item: album, type: 'album' })}
               >
                 Редактировать альбом
@@ -128,6 +129,7 @@ export default function AlbumPage() {
                 onEdit={(t) => setEditModal({ isOpen: true, item: t, type: 'track' })}
                 canDelete={isStaff}
                 onDelete={handleDeleteTrack}
+                showAlbumPosition={true}
               />
             ))}
           </div>
