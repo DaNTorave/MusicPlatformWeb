@@ -61,7 +61,12 @@
 
 .artist-meta {
   color: #666;
+  display: flex;
   font-size: 0.95rem;
+}
+
+.artist-meta-string {
+  padding: 0 7px;
 }
 
 .album-cover-large {
@@ -88,7 +93,7 @@
   gap: 1.25rem;
 }
 
-.artist-section h2 {
+.all-tracks-action h2 {
   font-size: 1.4rem;
   font-weight: 800;
   color: #14161a;
@@ -325,4 +330,63 @@
   height: 26px;
   display: block;
   filter: brightness(0) invert(1);
+}
+.all-tracks-action {
+  display: flex;
+  justify-content: space-between;
+}
+
+.all-tracks-action button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: #eef6fc;
+  color: #1773cf;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.all-tracks-action button:hover {
+  background: #e0f2fe;
+  color: #0f5a9e;
+  transform: translateX(-3px);
+}
+
+.all-tracks-action button:active {
+  transform: translateX(-1px) scale(0.98);
+}
+
+/* Прокручиваемый контейнер популярных треков */
+.scrollable-artist-tracks {
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.scrollable-artist-tracks::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollable-artist-tracks::-webkit-scrollbar-track {
+  background: #f4f4f5;
+  border-radius: 4px;
+}
+
+.scrollable-artist-tracks::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+  border-radius: 4px;
+}
+
+.scrollable-artist-tracks::-webkit-scrollbar-thumb:hover {
+  background: #a1a1aa;
 }

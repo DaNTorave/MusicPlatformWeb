@@ -21,7 +21,7 @@ function App() {
         <main style={{ paddingBottom: '90px' }}>
           <Routes>
             <Route path="/" element={<Content />} />
-            <Route path="/artists/:id" element={<ArtistPage />} />
+            <Route path="/artists/:id/*" element={<ArtistPage />} />
             <Route path="/albums/:id" element={<AlbumPage />} />
             <Route path="/tracks/:id" element={<TrackPage />} />
             <Route path="/profile" element={<ProfilePage />} />
