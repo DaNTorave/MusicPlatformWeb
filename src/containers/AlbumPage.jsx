@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/apiClient';
 import { useAudioPlayer } from '../context/AudioContext';
 
@@ -7,6 +7,8 @@ import TrackRow from '../components/TrackRow';
 import EditEntityModal from '../components/EditEntityModal';
 import Button from '../components/Button';
 
+import playIcon from '../assets/play-icon.svg';
+import pauseIcon from '../assets/pause-icon.svg';
 import defaultCover from '../assets/Шотландская веслоухая.jpg';
 
 import '../styles/ArtistPage.css';
@@ -17,6 +19,8 @@ export default function AlbumPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editModal, setEditModal] = useState({ isOpen: false, item: null, type: null });
+
+  const navigate = useNavigate();
 
   const { playTrack, currentTrack, isPlaying } = useAudioPlayer();
   const currentUser = apiClient.getUser();
@@ -92,11 +96,11 @@ export default function AlbumPage() {
         <div className="artist-info">
           <span className="artist-tag">Альбом</span>
           <h1 className="artist-title">{album.title}</h1>
-          <p className="artist-meta">
-            Исполнитель: <Link to={`/artists/${album.artist?.id}`} className="artist-link">{album.artist?.name}</Link>
-            {album.release_year && ` Год: ${album.release_year}`}
-            {album.likes_count > 0 && ` Лайков: ${album.likes_count}`}
-          </p>
+          <div className="artist-meta">
+            <p className='artist-meta-string'>Исполнитель: <Link to={`/artists/${album.artist?.id}`} className="artist-link">{album.artist?.name}</Link></p>
+            {album.release_year && (<p className='artist-meta-string'>Год: {album.release_year}</p>)}
+            <p className='artist-meta-string'>Лайков: {album.likes_count || 0}</p>
+          </div>
 
           {isStaff && (
             <div style={{ marginTop: '12px' }}>
@@ -113,7 +117,12 @@ export default function AlbumPage() {
       </div>
 
       <div className="artist-section">
-        <h2>Список композиций</h2>
+        <div className='all-tracks-action'>
+          <h2>Список композиций</h2>
+          <button onClick={() => navigate(-1)}>         
+            &lt; Назад
+          </button>
+        </div>
         {(!album.tracks || album.tracks.length === 0) ? (
           <p className="empty-text">В альбоме пока нет доступных треков</p>
         ) : (
@@ -130,6 +139,7 @@ export default function AlbumPage() {
                 canDelete={isStaff}
                 onDelete={handleDeleteTrack}
                 showAlbumPosition={true}
+                showCoverImg={false}
               />
             ))}
           </div>
@@ -137,4 +147,4 @@ export default function AlbumPage() {
       </div>
     </div>
   );
-}
+};

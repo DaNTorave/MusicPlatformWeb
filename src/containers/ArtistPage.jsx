@@ -335,8 +335,9 @@ export default function ArtistPage() {
             ) : (
               <div className="media-cards-grid">
                 {albums.map((album) => {
-                  const firstTrack = album.tracks?.[0];
-                  const isAlbumPlaying = firstTrack && currentTrack?.id === firstTrack.id && isPlaying;
+                  const albumTrackIds = (album.tracks || []).map(t => String(t.id));
+                  const isCurrentTrackInAlbum = currentTrack && albumTrackIds.includes(String(currentTrack.id));
+                  const isAlbumPlaying = isCurrentTrackInAlbum && isPlaying;
 
                   return (
                     <div 

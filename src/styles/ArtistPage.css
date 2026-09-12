@@ -362,31 +362,3 @@
 .all-tracks-action button:active {
   transform: translateX(-1px) scale(0.98);
 }
-
-/* Прокручиваемый контейнер популярных треков */
-.scrollable-artist-tracks {
-  max-height: 480px;
-  overflow-y: auto;
-  padding-right: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.scrollable-artist-tracks::-webkit-scrollbar {
-  width: 6px;
-}
-
-.scrollable-artist-tracks::-webkit-scrollbar-track {
-  background: #f4f4f5;
-  border-radius: 4px;
-}
-
-.scrollable-artist-tracks::-webkit-scrollbar-thumb {
-  background: #d4d4d8;
-  border-radius: 4px;
-}
-
-.scrollable-artist-tracks::-webkit-scrollbar-thumb:hover {
-  background: #a1a1aa;
-}

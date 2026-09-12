@@ -21,6 +21,7 @@ export default function TrackRow({
   onDelete,
   canDelete = false,
   showAlbumPosition = false,
+  showCoverImg = true,
 }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [duration, setDuration] = useState(() => track.duration_seconds || track.duration || 0);
@@ -107,27 +108,39 @@ export default function TrackRow({
       onClick={() => onPlay && onPlay(track)}
     >
       <span className="track-row-num">{displayNum}</span>
+      {showCoverImg ? (
+        <div className="track-row-cover-wrapper">
+          <img
+            src={track.cover || defaultCover}
+            alt={track.title}
+            className="track-row-cover"
+          />
 
-      <div className="track-row-cover-wrapper">
-        <img
-          src={track.cover || defaultCover}
-          alt={track.title}
-          className="track-row-cover"
-        />
-
-        <button 
-          type="button" 
-          className={`track-cover-play-btn ${isPlaying ? 'visible' : ''}`}
-          title={isPlaying ? 'Пауза' : 'Слушать'}
-          onClick={(e) => {
-            e.stopPropagation();
-            onPlay && onPlay(track);
-          }}
-        >
-          <img src={isPlaying ? pauseIcon : playIcon} alt="Play/Pause" className="player-icon-svg" />
-        </button>
+          <button 
+            type="button" 
+            className={`track-cover-play-btn ${isPlaying ? 'visible' : ''}`}
+            title={isPlaying ? 'Пауза' : 'Слушать'}
+            onClick={(e) => {
+              e.stopPropagation();
+              onPlay && onPlay(track);
+            }}
+          >
+            <img src={isPlaying ? pauseIcon : playIcon} alt="Play/Pause" className="player-icon-svg" />
+          </button>
       </div>
-
+      ) : (
+        <button 
+            type="button" 
+            className={`track-play-btn ${isPlaying ? 'visible' : ''}`}
+            title={isPlaying ? 'Пауза' : 'Слушать'}
+            onClick={(e) => {
+              e.stopPropagation();
+              onPlay && onPlay(track);
+            }}
+          >
+            <img src={isPlaying ? pauseIcon : playIcon} alt="Play/Pause" className="player-icon-svg" />
+          </button>
+      )}
       <div className="track-row-main">
         <div className="track-row-title-container">
           <Link 

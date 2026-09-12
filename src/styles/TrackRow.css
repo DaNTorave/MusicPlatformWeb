@@ -80,6 +80,32 @@
   filter: brightness(0) invert(1);
 }
 
+.track-play-btn {
+  bottom: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #1773cf;
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.track-play-btn:hover {
+  background: #1461b0;
+}
+
+.track-play-btn img {
+  width: 28px;
+  height: 28px;
+  filter: brightness(0) invert(1);
+} 
+
 .track-row-main {
   display: flex;
   flex-direction: column;
