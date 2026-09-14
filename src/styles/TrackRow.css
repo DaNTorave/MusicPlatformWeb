@@ -62,7 +62,9 @@
   justify-content: center;
   opacity: 0;
   cursor: pointer;
-  transition: opacity 0.2s ease, background 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    background 0.2s ease;
 }
 
 .track-row-item:hover .track-cover-play-btn,
@@ -104,7 +106,7 @@
   width: 28px;
   height: 28px;
   filter: brightness(0) invert(1);
-} 
+}
 
 .track-row-main {
   display: flex;
@@ -219,12 +221,14 @@
 .track-action-btn.delete-btn .action-icon {
   width: 18px;
   height: 18px;
-  filter: invert(19%) sepia(88%) saturate(5412%) hue-rotate(352deg) brightness(92%) contrast(93%);
+  filter: invert(19%) sepia(88%) saturate(5412%) hue-rotate(352deg)
+    brightness(92%) contrast(93%);
   opacity: 1;
 }
 
 .track-action-btn.delete-btn:hover .action-icon {
-  filter: invert(14%) sepia(85%) saturate(4800%) hue-rotate(353deg) brightness(85%) contrast(100%);
+  filter: invert(14%) sepia(85%) saturate(4800%) hue-rotate(353deg)
+    brightness(85%) contrast(100%);
 }
 
 .track-row-artists-list {
@@ -294,7 +298,8 @@
 }
 
 .track-action-btn.download-btn:hover .action-icon {
-  filter: invert(36%) sepia(85%) saturate(1633%) hue-rotate(193deg) brightness(91%) contrast(92%);
+  filter: invert(36%) sepia(85%) saturate(1633%) hue-rotate(193deg)
+    brightness(91%) contrast(92%);
 }
 
 .track-row-title-link {

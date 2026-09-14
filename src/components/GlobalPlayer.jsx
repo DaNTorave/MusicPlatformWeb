@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAudioPlayer } from '../context/AudioContext';
 
+import AgeBadge from './AgeBadge';
+
 import defaultCover from '../assets/Шотландская веслоухая.jpg';
 import playIcon from '../assets/play-icon.svg';
 import pauseIcon from '../assets/pause-icon.svg';
@@ -12,7 +14,17 @@ import volumeIcon from '../assets/volume-icon.svg';
 import '../styles/GlobalPlayer.css';
 
 export default function GlobalPlayer() {
-  const { currentTrack, queue, isPlaying, playTrack, nextTrack, prevTrack, volume, setVolume, audioRef } = useAudioPlayer();
+  const {
+    currentTrack,
+    queue,
+    isPlaying,
+    playTrack,
+    nextTrack,
+    prevTrack,
+    volume,
+    setVolume,
+    audioRef,
+  } = useAudioPlayer();
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -55,7 +67,9 @@ export default function GlobalPlayer() {
 
   if (!currentTrack) return null;
 
-  const currentIdx = queue.findIndex(t => String(t.id) === String(currentTrack.id));
+  const currentIdx = queue.findIndex(
+    (t) => String(t.id) === String(currentTrack.id),
+  );
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx !== -1 && currentIdx + 1 < queue.length;
 
@@ -63,12 +77,19 @@ export default function GlobalPlayer() {
   if (currentTrack.artist && currentTrack.artist.name) {
     allArtists.push(currentTrack.artist);
   } else if (typeof currentTrack.artist === 'string') {
-    allArtists.push({ id: currentTrack.artist_id, name: currentTrack.artist });
+    allArtists.push({
+      id: currentTrack.artist_id,
+      name: currentTrack.artist,
+    });
   }
 
   if (Array.isArray(currentTrack.collaborators)) {
     currentTrack.collaborators.forEach((c) => {
-      if (c && c.name && !allArtists.some((a) => String(a.id) === String(c.id))) {
+      if (
+        c &&
+        c.name &&
+        !allArtists.some((a) => String(a.id) === String(c.id))
+      ) {
         allArtists.push(c);
       }
     });
@@ -80,13 +101,17 @@ export default function GlobalPlayer() {
   return (
     <div className="global-player-bar">
       <div className="player-track-info">
-        <img src={currentTrack.cover || defaultCover} alt="cover" className="player-cover" />
+        <img
+          src={currentTrack.cover || defaultCover}
+          alt="cover"
+          className="player-cover"
+        />
         <div className="player-track-meta">
           <div className="player-title-row">
             {currentTrack.id ? (
-              <Link 
-                to={`/tracks/${currentTrack.id}`} 
-                className="player-title player-title-link" 
+              <Link
+                to="/player"
+                className="player-title player-title-link"
                 title={currentTrack.title}
               >
                 {currentTrack.title}
@@ -97,6 +122,8 @@ export default function GlobalPlayer() {
               </span>
             )}
 
+            {currentTrack.age_restriction && <AgeBadge size="small" />}
+
             {isCover && (
               <span
                 className={`player-cover-badge ${originalTrack ? 'clickable' : ''}`}
@@ -105,8 +132,13 @@ export default function GlobalPlayer() {
                   if (originalTrack) {
                     playTrack({
                       ...originalTrack,
-                      cover: originalTrack.cover || currentTrack.cover || defaultCover,
-                      artist: originalTrack.artist || { name: 'Исполнитель' }
+                      cover:
+                        originalTrack.cover ||
+                        currentTrack.cover ||
+                        defaultCover,
+                      artist: originalTrack.artist || {
+                        name: 'Исполнитель',
+                      },
                     });
                   }
                 }}
@@ -125,7 +157,11 @@ export default function GlobalPlayer() {
             {allArtists.map((art, idx) => (
               <React.Fragment key={art.id || idx}>
                 {art.id ? (
-                  <Link to={`/artists/${art.id}`} className="player-artist player-artist-link" title={art.name}>
+                  <Link
+                    to={`/artists/${art.id}`}
+                    className="player-artist player-artist-link"
+                    title={art.name}
+                  >
                     {art.name}
                   </Link>
                 ) : (
@@ -144,14 +180,25 @@ export default function GlobalPlayer() {
             type="button"
             className="player-btn-secondary"
             onClick={prevTrack}
-            disabled={!hasPrev && (!audioRef.current || audioRef.current.currentTime === 0)}
+            disabled={
+              !hasPrev &&
+              (!audioRef.current || audioRef.current.currentTime === 0)
+            }
             title="Предыдущий трек"
           >
             <img src={prevIcon} alt="Назад" className="player-nav-icon" />
           </button>
 
-          <button onClick={() => playTrack(currentTrack)} className="player-btn-main" title={isPlaying ? 'Пауза' : 'Слушать'}>
-            <img src={isPlaying ? pauseIcon : playIcon} alt="Play/Pause" className="player-main-icon" />
+          <button
+            onClick={() => playTrack(currentTrack)}
+            className="player-btn-main"
+            title={isPlaying ? 'Пауза' : 'Слушать'}
+          >
+            <img
+              src={isPlaying ? pauseIcon : playIcon}
+              alt="Play/Pause"
+              className="player-main-icon"
+            />
           </button>
 
           <button
@@ -176,11 +223,15 @@ export default function GlobalPlayer() {
           >
             <div
               className="player-progress-fill"
-              style={{ width: `${duration ? (progress / duration) * 100 : 0}%` }}
+              style={{
+                width: `${duration ? (progress / duration) * 100 : 0}%`,
+              }}
             />
             <div
               className="player-progress-thumb"
-              style={{ left: `${duration ? (progress / duration) * 100 : 0}%` }}
+              style={{
+                left: `${duration ? (progress / duration) * 100 : 0}%`,
+              }}
             />
           </div>
           <span className="player-time">{formatTime(duration)}</span>

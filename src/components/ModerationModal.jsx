@@ -12,7 +12,14 @@ import pauseIcon from '../assets/pause-icon.svg';
 
 import '../styles/ModerationModal.css';
 
-export default function ModerationModal({ isOpen, onClose, item, onApprove, onReject, loading }) {
+export default function ModerationModal({
+  isOpen,
+  onClose,
+  item,
+  onApprove,
+  onReject,
+  loading,
+}) {
   const [title, setTitle] = useState('');
   const [releaseYear, setReleaseYear] = useState('');
   const [coverFile, setCoverFile] = useState(null);
@@ -27,7 +34,14 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
   const [isCover, setIsCover] = useState(false);
   const [originalTrackId, setOriginalTrackId] = useState(null);
 
-  const { playTrack, currentTrack, isPlaying, updateTrackTitle, updateTrackCover, stopPlayer } = useAudioPlayer();
+  const {
+    playTrack,
+    currentTrack,
+    isPlaying,
+    updateTrackTitle,
+    updateTrackCover,
+    stopPlayer,
+  } = useAudioPlayer();
 
   useEffect(() => {
     if (isOpen) {
@@ -48,14 +62,16 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
       setRejectReason('');
       setCoverFile(null);
       setAudioFile(null);
-      setTracks((item.tracks || []).map((t, idx) => ({
-        ...t,
-        position: t.position || idx + 1,
-        release_year: t.release_year ? String(t.release_year) : '',
-        audioFile: null,
-        is_cover: Boolean(t.is_cover || t.original_track_id),
-        original_track_id: t.original_track_id || null
-      })));
+      setTracks(
+        (item.tracks || []).map((t, idx) => ({
+          ...t,
+          position: t.position || idx + 1,
+          release_year: t.release_year ? String(t.release_year) : '',
+          audioFile: null,
+          is_cover: Boolean(t.is_cover || t.original_track_id),
+          original_track_id: t.original_track_id || null,
+        })),
+      );
 
       setIsCover(Boolean(item.is_cover || item.original_track_id));
       setOriginalTrackId(item.original_track_id || null);
@@ -74,7 +90,11 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
       const previewUrl = URL.createObjectURL(file);
       setCoverPreview(previewUrl);
 
-      if (currentTrack && (currentTrack.id === item.id || tracks.some((t) => t.id === currentTrack.id))) {
+      if (
+        currentTrack &&
+        (currentTrack.id === item.id ||
+          tracks.some((t) => t.id === currentTrack.id))
+      ) {
         updateTrackCover(previewUrl);
       }
     }
@@ -110,7 +130,7 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
   };
 
   const handleRemoveTrack = (index) => {
-    setTracks(prev => prev.filter((_, i) => i !== index));
+    setTracks((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handlePlaySingle = () => {
@@ -121,7 +141,9 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
       streamUrl: audioFile ? URL.createObjectURL(audioFile) : null,
       artist: { name: item.artist_info?.name || 'Модерация' },
       is_cover: isCover,
-      original_track: availableTracks.find(t => String(t.id) === String(originalTrackId))
+      original_track: availableTracks.find(
+        (t) => String(t.id) === String(originalTrackId),
+      ),
     });
   };
 
@@ -133,7 +155,9 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
       streamUrl: track.audioFile ? URL.createObjectURL(track.audioFile) : null,
       artist: { name: item.artist_info?.name || 'Модерация' },
       is_cover: track.is_cover,
-      original_track: availableTracks.find(t => String(t.id) === String(track.original_track_id))
+      original_track: availableTracks.find(
+        (t) => String(t.id) === String(track.original_track_id),
+      ),
     });
   };
 
@@ -141,7 +165,11 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
     stopPlayer();
     const schemaType =
       item.type ||
-      (item.tracks ? 'album' : item.genre && !item.audio_uuid ? 'artist' : 'track');
+      (item.tracks
+        ? 'album'
+        : item.genre && !item.audio_uuid
+          ? 'artist'
+          : 'track');
 
     const formData = new FormData();
     formData.append('schema', schemaType);
@@ -167,12 +195,22 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
         if (track.id) formData.append(`tracks[${idx}][id]`, track.id);
         formData.append(`tracks[${idx}][title]`, track.title);
         formData.append(`tracks[${idx}][position]`, track.position || idx + 1);
-        formData.append(`tracks[${idx}][release_year]`, track.release_year || releaseYear || '');
-        formData.append(`tracks[${idx}][is_cover]`, track.is_cover ? 'true' : 'false');
+        formData.append(
+          `tracks[${idx}][release_year]`,
+          track.release_year || releaseYear || '',
+        );
+        formData.append(
+          `tracks[${idx}][is_cover]`,
+          track.is_cover ? 'true' : 'false',
+        );
         if (track.is_cover && track.original_track_id) {
-          formData.append(`tracks[${idx}][original_track_id]`, track.original_track_id);
+          formData.append(
+            `tracks[${idx}][original_track_id]`,
+            track.original_track_id,
+          );
         }
-        if (track.audioFile) formData.append(`tracks[${idx}][audio]`, track.audioFile);
+        if (track.audioFile)
+          formData.append(`tracks[${idx}][audio]`, track.audioFile);
       });
     }
 
@@ -201,9 +239,11 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
 
     if (isAlbum) {
       if (tracks.length === 0) return true;
-      const hasEmptyTitle = tracks.some(t => !t.title.trim());
+      const hasEmptyTitle = tracks.some((t) => !t.title.trim());
       if (hasEmptyTitle) return true;
-      const hasIncompleteCover = tracks.some(t => t.is_cover && !t.original_track_id);
+      const hasIncompleteCover = tracks.some(
+        (t) => t.is_cover && !t.original_track_id,
+      );
       if (hasIncompleteCover) return true;
     }
 
@@ -211,13 +251,27 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
   })();
 
   return (
-    <div className="modal-background" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-window moderation-modal" style={{ maxWidth: '680px' }}>
+    <div
+      className="modal-background"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="modal-window moderation-modal">
         <div className="modal-window-top-buttons">
           <button type="button" className="modal-window-top-button active">
-            Модерация: {item.type === 'artist' ? 'Исполнитель' : item.type === 'album' ? 'Альбом' : 'Трек'}
+            Модерация:{' '}
+            {item.type === 'artist'
+              ? 'Исполнитель'
+              : item.type === 'album'
+                ? 'Альбом'
+                : 'Трек'}
           </button>
-          <button type="button" className="modal-close-button" onClick={onClose}>✕</button>
+          <button
+            type="button"
+            className="modal-close-button"
+            onClick={onClose}
+          >
+            ✕
+          </button>
         </div>
 
         <div className="modal-window-content">
@@ -226,7 +280,11 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
               <div className="moderation-cover">
                 <img src={coverPreview || '/default.png'} alt="Обложка" />
                 <label className="moderation-cover-change">
-                  <input type="file" accept="image/*" onChange={handleCoverChange} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCoverChange}
+                  />
                   Изменить обложку
                 </label>
               </div>
@@ -306,13 +364,22 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
                       onClick={handlePlaySingle}
                       title={isSinglePlaying ? 'Пауза' : 'Слушать'}
                     >
-                      <img src={isSinglePlaying ? pauseIcon : playIcon} alt="Play/Pause" />
+                      <img
+                        src={isSinglePlaying ? pauseIcon : playIcon}
+                        alt="Play/Pause"
+                      />
                     </button>
                   </div>
 
                   <label className="moderation-audio-change">
-                    <input type="file" accept="audio/*" onChange={(e) => setAudioFile(e.target.files[0])} />
-                    {audioFile ? 'Файл выбран для замены' : 'Заменить аудиофайл'}
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      onChange={(e) => setAudioFile(e.target.files[0])}
+                    />
+                    {audioFile
+                      ? 'Файл выбран для замены'
+                      : 'Заменить аудиофайл'}
                   </label>
                 </div>
               </div>
@@ -346,10 +413,10 @@ export default function ModerationModal({ isOpen, onClose, item, onApprove, onRe
 
             <div className="moderation-actions">
               <div className="moderation-action-group">
-                <Button 
-                  type="button" 
-                  variant="primary" 
-                  disabled={isApproveDisabled} 
+                <Button
+                  type="button"
+                  variant="primary"
+                  disabled={isApproveDisabled}
                   onClick={() => handleSubmit('approve')}
                 >
                   {loading ? 'Сохранение...' : 'Одобрить'}

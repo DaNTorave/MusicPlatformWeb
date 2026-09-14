@@ -164,10 +164,12 @@
 .track-slot-remove-btn img {
   width: 16px;
   height: 16px;
-  filter: invert(19%) sepia(88%) saturate(5412%) hue-rotate(352deg) brightness(92%) contrast(93%);
+  filter: invert(19%) sepia(88%) saturate(5412%) hue-rotate(352deg)
+    brightness(92%) contrast(93%);
   display: block;
 }
 
 .track-slot-remove-btn:hover img {
-  filter: invert(14%) sepia(85%) saturate(4800%) hue-rotate(353deg) brightness(85%) contrast(100%);
+  filter: invert(14%) sepia(85%) saturate(4800%) hue-rotate(353deg)
+    brightness(85%) contrast(100%);
 }

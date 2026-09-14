@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+import AgeBadge from './AgeBadge';
+
 import defaultCover from '../assets/Шотландская веслоухая.jpg';
 import favoriteIcon from '../assets/favorite.svg';
 import playIcon from '../assets/play-icon.svg';
@@ -24,7 +26,9 @@ export default function TrackRow({
   showCoverImg = true,
 }) {
   const [isFavorite, setIsFavorite] = useState(false);
-  const [duration, setDuration] = useState(() => track.duration_seconds || track.duration || 0);
+  const [duration, setDuration] = useState(
+    () => track.duration_seconds || track.duration || 0,
+  );
 
   useEffect(() => {
     const directDur = track.duration_seconds || track.duration;
@@ -40,7 +44,12 @@ export default function TrackRow({
       audio.src = `/api/stream/${track.id}`;
 
       const handleLoadedMetadata = () => {
-        if (isMounted && audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+        if (
+          isMounted &&
+          audio.duration &&
+          !isNaN(audio.duration) &&
+          isFinite(audio.duration)
+        ) {
           setDuration(Math.round(audio.duration));
         }
       };
@@ -69,14 +78,21 @@ export default function TrackRow({
   }
   if (Array.isArray(track.collaborators)) {
     track.collaborators.forEach((c) => {
-      if (c && c.name && !artistsList.some((a) => String(a.id) === String(c.id))) {
+      if (
+        c &&
+        c.name &&
+        !artistsList.some((a) => String(a.id) === String(c.id))
+      ) {
         artistsList.push(c);
       }
     });
   }
 
   const originalTrack = track.original_track;
-  const isCover = track.is_cover || Boolean(track.original_track_id) || Boolean(originalTrack);
+  const isCover =
+    track.is_cover ||
+    Boolean(track.original_track_id) ||
+    Boolean(originalTrack);
 
   const handleCoverClick = (e) => {
     e.stopPropagation();
@@ -84,7 +100,7 @@ export default function TrackRow({
       onPlay({
         ...originalTrack,
         cover: originalTrack.cover || track.cover || defaultCover,
-        artist: originalTrack.artist || { name: 'Исполнитель' }
+        artist: originalTrack.artist || { name: 'Исполнитель' },
       });
     }
   };
@@ -100,10 +116,11 @@ export default function TrackRow({
     document.body.removeChild(link);
   };
 
-  const displayNum = showAlbumPosition && track.position ? track.position : index + 1;
+  const displayNum =
+    showAlbumPosition && track.position ? track.position : index + 1;
 
   return (
-    <div 
+    <div
       className={`track-row-item ${isPlaying ? 'active' : ''}`}
       onClick={() => onPlay && onPlay(track)}
     >
@@ -116,8 +133,8 @@ export default function TrackRow({
             className="track-row-cover"
           />
 
-          <button 
-            type="button" 
+          <button
+            type="button"
             className={`track-cover-play-btn ${isPlaying ? 'visible' : ''}`}
             title={isPlaying ? 'Пауза' : 'Слушать'}
             onClick={(e) => {
@@ -125,32 +142,41 @@ export default function TrackRow({
               onPlay && onPlay(track);
             }}
           >
-            <img src={isPlaying ? pauseIcon : playIcon} alt="Play/Pause" className="player-icon-svg" />
+            <img
+              src={isPlaying ? pauseIcon : playIcon}
+              alt="Play/Pause"
+              className="player-icon-svg"
+            />
           </button>
-      </div>
+        </div>
       ) : (
-        <button 
-            type="button" 
-            className={`track-play-btn ${isPlaying ? 'visible' : ''}`}
-            title={isPlaying ? 'Пауза' : 'Слушать'}
-            onClick={(e) => {
-              e.stopPropagation();
-              onPlay && onPlay(track);
-            }}
-          >
-            <img src={isPlaying ? pauseIcon : playIcon} alt="Play/Pause" className="player-icon-svg" />
-          </button>
+        <button
+          type="button"
+          className={`track-play-btn ${isPlaying ? 'visible' : ''}`}
+          title={isPlaying ? 'Пауза' : 'Слушать'}
+          onClick={(e) => {
+            e.stopPropagation();
+            onPlay && onPlay(track);
+          }}
+        >
+          <img
+            src={isPlaying ? pauseIcon : playIcon}
+            alt="Play/Pause"
+            className="player-icon-svg"
+          />
+        </button>
       )}
       <div className="track-row-main">
         <div className="track-row-title-container">
-          <Link 
-            to={`/tracks/${track.id}`} 
-            className="track-row-title track-row-title-link" 
+          <Link
+            to={`/tracks/${track.id}`}
+            className="track-row-title track-row-title-link"
             title={track.title}
             onClick={(e) => e.stopPropagation()}
           >
             {track.title}
           </Link>
+          {track.age_restriction && <AgeBadge size="small" />}
           {isCover && (
             <span
               className={`track-cover-badge ${originalTrack ? 'clickable' : ''}`}
@@ -165,30 +191,38 @@ export default function TrackRow({
             </span>
           )}
         </div>
-        
-        <div className="track-row-artists-list" onClick={(e) => e.stopPropagation()}>
+
+        <div
+          className="track-row-artists-list"
+          onClick={(e) => e.stopPropagation()}
+        >
           {artistsList.length > 0 ? (
             artistsList.map((art, idx) => (
               <React.Fragment key={art.id || idx}>
                 {art.id ? (
-                  <Link to={`/artists/${art.id}`} className="track-row-artist-link">
+                  <Link
+                    to={`/artists/${art.id}`}
+                    className="track-row-artist-link"
+                  >
                     {art.name}
                   </Link>
                 ) : (
                   <span className="track-row-artist-name">{art.name}</span>
                 )}
-                {idx < artistsList.length - 1 && <span className="artist-separator">, </span>}
+                {idx < artistsList.length - 1 && (
+                  <span className="artist-separator">, </span>
+                )}
               </React.Fragment>
             ))
           ) : (
-            <span className="track-row-artist-name">Неизвестный исполнитель</span>
+            <span className="track-row-artist-name">
+              Неизвестный исполнитель
+            </span>
           )}
         </div>
       </div>
 
-      <div className="track-row-duration">
-        {formatDuration(duration)}
-      </div>
+      <div className="track-row-duration">{formatDuration(duration)}</div>
 
       <div className="track-row-actions" onClick={(e) => e.stopPropagation()}>
         <button
@@ -200,10 +234,10 @@ export default function TrackRow({
           }}
           title="Добавить в избранное"
         >
-          <img 
-            src={favoriteIcon} 
-            alt="Favorite" 
-            className={`action-icon ${isFavorite ? 'fav-icon-active' : ''}`} 
+          <img
+            src={favoriteIcon}
+            alt="Favorite"
+            className={`action-icon ${isFavorite ? 'fav-icon-active' : ''}`}
           />
         </button>
 

@@ -9,7 +9,13 @@ import closeIcon from '../assets/close-icon.svg';
 
 import '../styles/AuthModal.css';
 
-export default function EditEntityModal({ isOpen, onClose, item, type, onSuccess }) {
+export default function EditEntityModal({
+  isOpen,
+  onClose,
+  item,
+  type,
+  onSuccess,
+}) {
   const [title, setTitle] = useState('');
   const [genre, setGenre] = useState('');
   const [coverFile, setCoverFile] = useState(null);
@@ -33,8 +39,8 @@ export default function EditEntityModal({ isOpen, onClose, item, type, onSuccess
           (item.tracks || []).map((t) => ({
             id: t.id,
             title: t.title || '',
-            audioFile: null
-          }))
+            audioFile: null,
+          })),
         );
       }
     }
@@ -51,19 +57,19 @@ export default function EditEntityModal({ isOpen, onClose, item, type, onSuccess
   };
 
   const handleAddTrackSlot = () => {
-    setTracks(prev => [...prev, { id: null, title: '', audioFile: null }]);
+    setTracks((prev) => [...prev, { id: null, title: '', audioFile: null }]);
   };
 
   const handleRemoveTrack = (index) => {
-    setTracks(prev => prev.filter((_, i) => i !== index));
+    setTracks((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleTrackChange = (index, field, value) => {
-    setTracks(prev => {
+    setTracks((prev) => {
       const copy = [...prev];
-      copy[index] = { 
-        ...copy[index], 
-        [field === 'audio' ? 'audioFile' : field]: value 
+      copy[index] = {
+        ...copy[index],
+        [field === 'audio' ? 'audioFile' : field]: value,
       };
       return copy;
     });
@@ -71,7 +77,7 @@ export default function EditEntityModal({ isOpen, onClose, item, type, onSuccess
 
   const moveTrack = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= tracks.length) return;
-    setTracks(prev => {
+    setTracks((prev) => {
       const updated = [...prev];
       const [moved] = updated.splice(fromIndex, 1);
       updated.splice(toIndex, 0, moved);
@@ -114,7 +120,9 @@ export default function EditEntityModal({ isOpen, onClose, item, type, onSuccess
       if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
-      setErrorMsg(err.data?.error || err.message || 'Ошибка сохранения изменений');
+      setErrorMsg(
+        err.data?.error || err.message || 'Ошибка сохранения изменений',
+      );
     } finally {
       setLoading(false);
     }
@@ -122,26 +130,39 @@ export default function EditEntityModal({ isOpen, onClose, item, type, onSuccess
 
   const getModalTitle = () => {
     switch (type) {
-      case 'artist': return 'Редактирование исполнителя';
-      case 'album': return 'Редактирование альбома';
-      case 'track': return 'Редактирование трека';
-      default: return 'Редактирование';
+      case 'artist':
+        return 'Редактирование исполнителя';
+      case 'album':
+        return 'Редактирование альбома';
+      case 'track':
+        return 'Редактирование трека';
+      default:
+        return 'Редактирование';
     }
   };
 
   return (
-    <div className="modal-background" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-window" style={{ maxWidth: type === 'album' ? '680px' : '520px' }}>
+    <div
+      className="modal-background"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        className={`modal-window ${type === 'album' ? 'modal-window-wide' : 'modal-window-narrow'}`}
+      >
         <div className="modal-window-top-buttons">
           <button type="button" className="modal-window-top-button active">
             {getModalTitle()}
           </button>
-          <button type="button" className="modal-close-button" onClick={onClose}>
+          <button
+            type="button"
+            className="modal-close-button"
+            onClick={onClose}
+          >
             <img src={closeIcon} alt="Закрыть" />
           </button>
         </div>
 
-        <div className="modal-window-content" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+        <div className="modal-window-content modal-window-content-scroll">
           <form className="auth-form" onSubmit={handleSubmit}>
             {errorMsg && <div className="auth-error-global">{errorMsg}</div>}
 
@@ -153,14 +174,20 @@ export default function EditEntityModal({ isOpen, onClose, item, type, onSuccess
                   className={`avatar-preview-image ${type === 'artist' ? 'circle' : ''}`}
                 />
                 <label className="avatar-preview-badge">
-                  <input type="file" accept="image/*" onChange={handleCoverChange} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCoverChange}
+                  />
                   Сменить
                 </label>
               </div>
             </div>
 
             <div className="auth-form-group">
-              <label>{type === 'artist' ? 'Имя исполнителя *' : 'Название *'}</label>
+              <label>
+                {type === 'artist' ? 'Имя исполнителя *' : 'Название *'}
+              </label>
               <input
                 type="text"
                 value={title}
@@ -198,7 +225,11 @@ export default function EditEntityModal({ isOpen, onClose, item, type, onSuccess
               <div className="auth-form-group">
                 <div className="track-list-header">
                   <label>Список треков ({tracks.length} шт.):</label>
-                  <button type="button" className="track-list-add-btn" onClick={handleAddTrackSlot}>
+                  <button
+                    type="button"
+                    className="track-list-add-btn"
+                    onClick={handleAddTrackSlot}
+                  >
                     + Добавить трек
                   </button>
                 </div>
@@ -221,10 +252,19 @@ export default function EditEntityModal({ isOpen, onClose, item, type, onSuccess
             )}
 
             <div className="modal-actions-row">
-              <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onClose}
+                disabled={loading}
+              >
                 Отмена
               </Button>
-              <Button type="submit" variant="primary" disabled={loading || !title.trim()}>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={loading || !title.trim()}
+              >
                 {loading ? 'Сохранение...' : 'Сохранить'}
               </Button>
             </div>

@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from 'react';
 
 const AudioContext = createContext(null);
 
@@ -53,7 +59,8 @@ export const AudioProvider = ({ children }) => {
     setIsPlaying(false);
 
     if (currentTrack?.id) {
-      const targetSrc = currentTrack.streamUrl || `/api/stream/${currentTrack.id}`;
+      const targetSrc =
+        currentTrack.streamUrl || `/api/stream/${currentTrack.id}`;
       currentSrcRef.current = targetSrc;
       audio.src = targetSrc;
     }
@@ -75,7 +82,9 @@ export const AudioProvider = ({ children }) => {
     const currentT = currentTrackRef.current;
     if (!currentQ || currentQ.length === 0 || !currentT) return;
 
-    const currentIndex = currentQ.findIndex(t => String(t.id) === String(currentT.id));
+    const currentIndex = currentQ.findIndex(
+      (t) => String(t.id) === String(currentT.id),
+    );
     if (currentIndex !== -1 && currentIndex + 1 < currentQ.length) {
       const nextT = currentQ[currentIndex + 1];
       playTrack(nextT, currentQ);
@@ -87,7 +96,9 @@ export const AudioProvider = ({ children }) => {
     const currentT = currentTrackRef.current;
     if (!currentQ || currentQ.length === 0 || !currentT) return;
 
-    const currentIndex = currentQ.findIndex(t => String(t.id) === String(currentT.id));
+    const currentIndex = currentQ.findIndex(
+      (t) => String(t.id) === String(currentT.id),
+    );
     if (currentIndex > 0) {
       const prevT = currentQ[currentIndex - 1];
       playTrack(prevT, currentQ);
@@ -125,7 +136,8 @@ export const AudioProvider = ({ children }) => {
     }
 
     const targetSrc = track.streamUrl || `/api/stream/${track.id}`;
-    const isSameTrack = currentTrack && String(currentTrack.id) === String(track.id);
+    const isSameTrack =
+      currentTrack && String(currentTrack.id) === String(track.id);
 
     if (isSameTrack && !track.streamUrl) {
       if (!audio.src || currentSrcRef.current !== targetSrc) {
@@ -136,7 +148,7 @@ export const AudioProvider = ({ children }) => {
       if (!audio.paused && isPlaying) {
         audio.pause();
       } else {
-        audio.play().catch(err => {
+        audio.play().catch((err) => {
           console.warn('Play was prevented:', err);
           setIsPlaying(false);
         });
@@ -159,16 +171,19 @@ export const AudioProvider = ({ children }) => {
     audio.src = targetSrc;
     audio.currentTime = 0;
 
-    audio.play().then(() => {
-      setIsPlaying(true);
-    }).catch(err => {
-      console.warn('Playback error:', err);
-      setIsPlaying(false);
-    });
+    audio
+      .play()
+      .then(() => {
+        setIsPlaying(true);
+      })
+      .catch((err) => {
+        console.warn('Playback error:', err);
+        setIsPlaying(false);
+      });
   };
 
   const updateTrackTitle = (newTitle) => {
-    setCurrentTrack(prev => {
+    setCurrentTrack((prev) => {
       if (!prev) return prev;
       const updated = { ...prev, title: newTitle };
       if (!prev.streamUrl) {
@@ -179,7 +194,7 @@ export const AudioProvider = ({ children }) => {
   };
 
   const updateTrackCover = (newCover) => {
-    setCurrentTrack(prev => {
+    setCurrentTrack((prev) => {
       if (!prev) return prev;
       const updated = { ...prev, cover: newCover };
       if (!prev.streamUrl) {
@@ -204,20 +219,22 @@ export const AudioProvider = ({ children }) => {
   };
 
   return (
-    <AudioContext.Provider value={{
-      currentTrack,
-      queue,
-      isPlaying,
-      volume,
-      setVolume,
-      playTrack,
-      nextTrack,
-      prevTrack,
-      updateTrackTitle,
-      updateTrackCover,
-      stopPlayer,
-      audioRef
-    }}>
+    <AudioContext.Provider
+      value={{
+        currentTrack,
+        queue,
+        isPlaying,
+        volume,
+        setVolume,
+        playTrack,
+        nextTrack,
+        prevTrack,
+        updateTrackTitle,
+        updateTrackCover,
+        stopPlayer,
+        audioRef,
+      }}
+    >
       {children}
     </AudioContext.Provider>
   );

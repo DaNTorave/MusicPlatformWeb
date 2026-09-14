@@ -20,13 +20,17 @@ export default function TrackSlotItem({
   disabled = false,
   availableArtists = [],
   availableTracks = [],
-  mainArtist = null
+  mainArtist = null,
 }) {
   const fileInputRef = useRef(null);
   const [showCollaborators, setShowCollaborators] = useState(false);
-  const [showCoverPanel, setShowCoverPanel] = useState(() => Boolean(track.is_cover));
+  const [showCoverPanel, setShowCoverPanel] = useState(() =>
+    Boolean(track.is_cover),
+  );
 
-  const hasAudio = Boolean(track.audio || track.audioFile || track.audio_uuid || track.id);
+  const hasAudio = Boolean(
+    track.audio || track.audioFile || track.audio_uuid || track.id,
+  );
   const audioName = track.audio?.name || track.audioFile?.name;
   const collaboratorIds = track.collaboratorIds || [];
   const isCover = Boolean(track.is_cover);
@@ -47,18 +51,9 @@ export default function TrackSlotItem({
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px',
-      background: '#fcfafafa',
-      border: '1px solid #e8e0e0',
-      borderRadius: '14px',
-      padding: '12px'
-    }}>
+    <div className="track-slot-card">
       <div
-        className="track-slot-row"
-        style={{ border: 'none', background: 'transparent', padding: 0 }}
+        className="track-slot-row track-slot-row-clean"
         draggable
         onDragStart={(e) => e.dataTransfer.setData('text/plain', index)}
         onDragOver={(e) => e.preventDefault()}
@@ -67,23 +62,24 @@ export default function TrackSlotItem({
           if (!isNaN(fromIdx) && fromIdx !== index) onMove(fromIdx, index);
         }}
       >
-        <span className="track-slot-handle" title="Перетащите для смены порядка">
+        <span
+          className="track-slot-handle"
+          title="Перетащите для смены порядка"
+        >
           ☰
         </span>
 
         <input
           type="number"
-          style={{
-            width: '46px',
-            padding: '6px 4px',
-            textAlign: 'center',
-            borderRadius: '8px',
-            border: '1px solid #e0d8d8',
-            fontWeight: 'bold',
-            fontSize: '0.85rem'
-          }}
-          value={track.position !== undefined && track.position !== null ? track.position : index + 1}
-          onChange={(e) => onChange(index, 'position', parseInt(e.target.value) || 1)}
+          className="track-slot-position-input"
+          value={
+            track.position !== undefined && track.position !== null
+              ? track.position
+              : index + 1
+          }
+          onChange={(e) =>
+            onChange(index, 'position', parseInt(e.target.value) || 1)
+          }
           title="Позиция трека в альбоме"
           disabled={disabled}
         />
@@ -115,9 +111,16 @@ export default function TrackSlotItem({
             className={`track-slot-file-btn ${hasAudio ? 'has-file' : ''}`}
             onClick={() => fileInputRef.current && fileInputRef.current.click()}
             disabled={disabled}
-            title={audioName || (hasAudio ? 'Аудио загружено' : 'Прикрепить аудиофайл')}
+            title={
+              audioName ||
+              (hasAudio ? 'Аудио загружено' : 'Прикрепить аудиофайл')
+            }
           >
-            {hasAudio ? (audioName ? `✓ ${audioName}` : '✓ Аудио') : '+ Файл трека'}
+            {hasAudio
+              ? audioName
+                ? `✓ ${audioName}`
+                : '✓ Аудио'
+              : '+ Файл трека'}
           </button>
 
           <input
@@ -136,38 +139,22 @@ export default function TrackSlotItem({
         {mainArtist && (
           <button
             type="button"
-            className="track-slot-nav-btn"
+            className={`track-slot-nav-btn track-slot-collab-btn ${collaboratorIds.length > 0 ? 'is-active' : ''}`}
             onClick={() => setShowCollaborators(!showCollaborators)}
             disabled={disabled}
-            style={{
-              padding: '7px 11px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              color: collaboratorIds.length > 0 ? '#1d4ed8' : '#475569',
-              background: collaboratorIds.length > 0 ? '#dbeafe' : '#f1f5f9',
-              border: collaboratorIds.length > 0 ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
-              borderRadius: '8px'
-            }}
             title="Настроить соавторов трека"
           >
-            {collaboratorIds.length > 0 ? `Соавторы (${collaboratorIds.length})` : '+ Соавтор'}
+            {collaboratorIds.length > 0
+              ? `Соавторы (${collaboratorIds.length})`
+              : '+ Соавтор'}
           </button>
         )}
 
         <button
           type="button"
-          className="track-slot-nav-btn"
+          className={`track-slot-nav-btn track-slot-cover-btn ${isCover ? 'is-active' : ''}`}
           onClick={toggleCover}
           disabled={disabled}
-          style={{
-            padding: '7px 11px',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            color: isCover ? '#15803d' : '#475569',
-            background: isCover ? '#dcfce7' : '#f1f5f9',
-            border: isCover ? '1px solid #bbf7d0' : '1px solid #e2e8f0',
-            borderRadius: '8px'
-          }}
           title="Отметить трек как кавер"
         >
           {isCover ? '✓ Кавер' : '+ Кавер'}
@@ -206,21 +193,23 @@ export default function TrackSlotItem({
       </div>
 
       {isCover && showCoverPanel && (
-        <div className="meta-box-card" style={{ marginTop: '4px', background: '#fdfbfb' }}>
+        <div className="meta-box-card meta-box-card-nested">
           <div className="meta-box-header">
             <span className="meta-box-title">Оригинальный трек для кавера</span>
           </div>
           <OriginalTrackManager
             availableTracks={availableTracks}
             selectedTrackId={track.original_track_id}
-            onChange={(trackId) => onChange(index, 'original_track_id', trackId)}
+            onChange={(trackId) =>
+              onChange(index, 'original_track_id', trackId)
+            }
             disabled={disabled}
           />
         </div>
       )}
 
       {showCollaborators && mainArtist && (
-        <div style={{ marginTop: '4px' }}>
+        <div className="track-slot-collab-wrapper">
           <CollaboratorsManager
             mainArtist={mainArtist}
             availableArtists={availableArtists}

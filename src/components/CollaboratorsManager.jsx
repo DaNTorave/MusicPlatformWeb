@@ -6,7 +6,7 @@ export default function CollaboratorsManager({
   availableArtists = [],
   collaboratorIds = [],
   onChange,
-  disabled = false
+  disabled = false,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -14,7 +14,9 @@ export default function CollaboratorsManager({
   const filteredSuggestions = availableArtists.filter((artist) => {
     const isMain = String(artist.id) === String(mainArtist?.id);
     const isAlreadySelected = collaboratorIds.includes(artist.id);
-    const matchesQuery = artist.name.toLowerCase().includes(searchQuery.toLowerCase().trim());
+    const matchesQuery = artist.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase().trim());
     return !isMain && !isAlreadySelected && matchesQuery;
   });
 
@@ -47,8 +49,7 @@ export default function CollaboratorsManager({
         <div className="collab-search-container">
           <input
             type="text"
-            className="input-element"
-            style={{ padding: '9px 14px', fontSize: '0.9rem' }}
+            className="input-element collab-search-input"
             placeholder="Поиск артиста для добавления в соавторы..."
             value={searchQuery}
             onFocus={() => setIsDropdownOpen(true)}
@@ -61,7 +62,7 @@ export default function CollaboratorsManager({
           {isDropdownOpen && searchQuery.trim() && (
             <div className="collab-dropdown-menu">
               {filteredSuggestions.length === 0 ? (
-                <div className="collab-dropdown-item" style={{ color: '#94a3b8' }}>
+                <div className="collab-dropdown-item collab-dropdown-empty">
                   Артист не найден
                 </div>
               ) : (
@@ -72,7 +73,9 @@ export default function CollaboratorsManager({
                     onClick={() => handleAddCollaborator(artist.id)}
                   >
                     <span>+ {artist.name}</span>
-                    {artist.genre && <span className="entity-genre-text">{artist.genre}</span>}
+                    {artist.genre && (
+                      <span className="entity-genre-text">{artist.genre}</span>
+                    )}
                   </div>
                 ))
               )}
@@ -81,7 +84,7 @@ export default function CollaboratorsManager({
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <div className="collab-list">
         {mainArtist && (
           <div className="entity-card-row is-main">
             <div className="entity-card-left">
@@ -93,7 +96,9 @@ export default function CollaboratorsManager({
         )}
 
         {collaboratorIds.map((cId, idx) => {
-          const artist = availableArtists.find((a) => String(a.id) === String(cId));
+          const artist = availableArtists.find(
+            (a) => String(a.id) === String(cId),
+          );
           if (!artist) return null;
 
           return (
@@ -101,7 +106,9 @@ export default function CollaboratorsManager({
               <div className="entity-card-left">
                 <span className="entity-order-index">#{idx + 2}</span>
                 <span className="entity-name-text">{artist.name}</span>
-                {artist.genre && <span className="entity-genre-text">({artist.genre})</span>}
+                {artist.genre && (
+                  <span className="entity-genre-text">({artist.genre})</span>
+                )}
               </div>
 
               {!disabled && (

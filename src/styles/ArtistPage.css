@@ -10,6 +10,10 @@
   border: 1px solid #f0eded;
 }
 
+.artist-bar-wrapper {
+  margin-bottom: -2.5rem;
+}
+
 .artist-page-state {
   display: flex;
   justify-content: center;
@@ -74,7 +78,7 @@
   height: 160px;
   border-radius: 16px;
   object-fit: cover;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 .artist-link {
@@ -288,7 +292,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   transition: all 0.2s ease;
 }
 
@@ -361,4 +365,24 @@
 
 .all-tracks-action button:active {
   transform: translateX(-1px) scale(0.98);
+}
+
+.artist-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.artist-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.artist-edit-btn-wrapper {
+  margin-top: 12px;
+}
+
+.search-album-avatar {
+  border-radius: 8px;
 }

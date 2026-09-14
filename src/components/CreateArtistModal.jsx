@@ -45,19 +45,30 @@ export default function CreateArtistModal({ isOpen, onClose, onSuccess }) {
   };
 
   return (
-    <div className="modal-background" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div
+      className="modal-background"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div className="modal-window" style={{ maxWidth: '500px' }}>
         <div className="modal-window-top-buttons">
           <button type="button" className="modal-window-top-button active">
             Новый исполнитель
           </button>
-          <button type="button" className="modal-close-button" onClick={onClose}>✕</button>
+          <button
+            type="button"
+            className="modal-close-button"
+            onClick={onClose}
+          >
+            ✕
+          </button>
         </div>
 
         <div className="modal-window-content">
           <form className="auth-form" onSubmit={handleSubmit}>
             {errorMsg && <div className="auth-error-global">{errorMsg}</div>}
-            {successMsg && <div className="auth-success-global">{successMsg}</div>}
+            {successMsg && (
+              <div className="auth-success-global">{successMsg}</div>
+            )}
 
             <div className="auth-form-group">
               <label>Имя исполнителя / Название группы *</label>
@@ -93,7 +104,11 @@ export default function CreateArtistModal({ isOpen, onClose, onSuccess }) {
               />
             </div>
 
-            <Button type="submit" variant="primary" disabled={loading || !name.trim() || !genre.trim()}>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={loading || !name.trim() || !genre.trim()}
+            >
               {loading ? 'Создание...' : 'Отправить на модерацию'}
             </Button>
           </form>

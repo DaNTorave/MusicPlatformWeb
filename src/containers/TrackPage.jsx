@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { apiClient } from '../api/apiClient';
 import { useAudioPlayer } from '../context/AudioContext';
 
+import AgeBadge from '../components/AgeBadge';
+
 import defaultCover from '../assets/Шотландская веслоухая.jpg';
 import playIcon from '../assets/play-icon.svg';
 import pauseIcon from '../assets/pause-icon.svg';
@@ -28,7 +30,9 @@ export default function TrackPage() {
           setTrack(res.track);
         } else {
           const chartsRes = await apiClient.request('/api/charts/tracks');
-          const found = chartsRes?.data?.find((t) => String(t.id) === String(id));
+          const found = chartsRes?.data?.find(
+            (t) => String(t.id) === String(id),
+          );
           if (found) {
             setTrack(found);
           } else {
@@ -45,10 +49,20 @@ export default function TrackPage() {
     fetchTrack();
   }, [id]);
 
-  if (loading) return <div className="track-page-state">Загрузка информации о треке...</div>;
-  if (error || !track) return <div className="track-page-state error">{error || 'Трек не найден'}</div>;
+  if (loading) {
+    return (
+      <div className="track-page-state">Загрузка информации о треке...</div>
+    );
+  }
 
-  const isCurrentActive = currentTrack && String(currentTrack.id) === String(track.id);
+  if (error || !track) {
+    return (
+      <div className="track-page-state error">{error || 'Трек не найден'}</div>
+    );
+  }
+
+  const isCurrentActive =
+    currentTrack && String(currentTrack.id) === String(track.id);
   const isPlayingNow = isCurrentActive && isPlaying;
 
   const allArtists = [];
@@ -57,7 +71,11 @@ export default function TrackPage() {
   }
   if (Array.isArray(track.collaborators)) {
     track.collaborators.forEach((c) => {
-      if (c && c.name && !allArtists.some((a) => String(a.id) === String(c.id))) {
+      if (
+        c &&
+        c.name &&
+        !allArtists.some((a) => String(a.id) === String(c.id))
+      ) {
         allArtists.push(c);
       }
     });
@@ -97,8 +115,11 @@ export default function TrackPage() {
         <div className="track-page-meta">
           <div className="track-page-badges">
             <span className="track-badge-type">
-              {track.is_single ? 'Сингл' : `Трек #${track.position || 1} из альбома`}
+              {track.is_single
+                ? 'Сингл'
+                : `Трек #${track.position || 1} из альбома`}
             </span>
+            {track.age_restriction && <AgeBadge size="medium" />}
             {track.is_cover && <span className="track-badge-cover">Кавер</span>}
           </div>
 
@@ -109,7 +130,10 @@ export default function TrackPage() {
             {allArtists.map((art, idx) => (
               <React.Fragment key={art.id || idx}>
                 {art.id ? (
-                  <Link to={`/artists/${art.id}`} className="track-page-artist-link">
+                  <Link
+                    to={`/artists/${art.id}`}
+                    className="track-page-artist-link"
+                  >
                     {art.name}
                   </Link>
                 ) : (
@@ -123,11 +147,17 @@ export default function TrackPage() {
           {track.album && !track.is_single && (
             <div className="track-page-album">
               <span className="track-meta-label">Альбом: </span>
-              <Link to={`/albums/${track.album.id}`} className="track-page-album-link">
+              <Link
+                to={`/albums/${track.album.id}`}
+                className="track-page-album-link"
+              >
                 {track.album.title}
               </Link>
               {track.album.release_year && (
-                <span style={{ color: '#64748b' }}> ({track.album.release_year})</span>
+                <span style={{ color: '#64748b' }}>
+                  {' '}
+                  ({track.album.release_year})
+                </span>
               )}
             </div>
           )}
@@ -141,9 +171,13 @@ export default function TrackPage() {
 
           <div className="track-page-stats">
             {track.release_year && (
-              <>Год: <strong>{track.release_year}</strong> • </>
+              <>
+                Год: <strong>{track.release_year}</strong> •{' '}
+              </>
             )}
-            Длительность: <strong>{formatDuration(track.duration_seconds)}</strong> • Прослушиваний: <strong>{track.plays_count || 0}</strong>
+            Длительность:{' '}
+            <strong>{formatDuration(track.duration_seconds)}</strong> •
+            Прослушиваний: <strong>{track.plays_count || 0}</strong>
           </div>
 
           <div className="track-page-actions">

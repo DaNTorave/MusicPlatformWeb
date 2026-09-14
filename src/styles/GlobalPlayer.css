@@ -4,10 +4,13 @@
   left: 0;
   right: 0;
   height: 85px;
-  background: #0B0C0E;
+  background: #0b0c0e;
   color: #fff;
   display: grid;
-  grid-template-columns: minmax(180px, 300px) minmax(320px, 600px) minmax(140px, 300px);
+  grid-template-columns: minmax(180px, 300px) minmax(320px, 600px) minmax(
+      140px,
+      300px
+    );
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
@@ -92,7 +95,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .player-btn-secondary:hover:not(:disabled) {
@@ -122,7 +127,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
 }
 
 .player-btn-main:hover {
@@ -206,7 +213,7 @@
   flex-shrink: 0;
 }
 
-.player-right-controls input[type="range"] {
+.player-right-controls input[type='range'] {
   accent-color: #1773cf;
   cursor: pointer;
   width: 90px;

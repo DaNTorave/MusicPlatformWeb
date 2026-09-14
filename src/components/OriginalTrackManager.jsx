@@ -5,13 +5,13 @@ export default function OriginalTrackManager({
   availableTracks = [],
   selectedTrackId,
   onChange,
-  disabled = false
+  disabled = false,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const selectedTrack = availableTracks.find(
-    (t) => String(t.id) === String(selectedTrackId)
+    (t) => String(t.id) === String(selectedTrackId),
   );
 
   const filteredSuggestions = availableTracks.filter((track) => {
@@ -20,7 +20,9 @@ export default function OriginalTrackManager({
 
     const query = searchQuery.toLowerCase().trim();
     const titleMatch = (track.title || '').toLowerCase().includes(query);
-    const artistMatch = (track.artist?.name || '').toLowerCase().includes(query);
+    const artistMatch = (track.artist?.name || '')
+      .toLowerCase()
+      .includes(query);
     return titleMatch || artistMatch;
   });
 
@@ -35,22 +37,19 @@ export default function OriginalTrackManager({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <p style={{
-        fontSize: '0.78rem',
-        color: '#64748b',
-        lineHeight: '1.3',
-        margin: '0 0 2px 0'
-      }}>
-        <em>Укажите оригинальный трек из каталога. Выбирать другие кавер-версии нельзя.</em>
+    <div className="original-track-manager">
+      <p className="original-track-hint">
+        <em>
+          Укажите оригинальный трек из каталога. Выбирать другие кавер-версии
+          нельзя.
+        </em>
       </p>
 
       {!selectedTrack && !disabled && (
         <div className="collab-search-container">
           <input
             type="text"
-            className="input-element"
-            style={{ padding: '9px 14px', fontSize: '0.9rem' }}
+            className="input-element collab-search-input"
             placeholder="Поиск оригинального трека по названию или артисту..."
             value={searchQuery}
             onFocus={() => setIsDropdownOpen(true)}
@@ -63,7 +62,7 @@ export default function OriginalTrackManager({
           {isDropdownOpen && searchQuery.trim() && (
             <div className="collab-dropdown-menu">
               {filteredSuggestions.length === 0 ? (
-                <div className="collab-dropdown-item" style={{ color: '#94a3b8' }}>
+                <div className="collab-dropdown-item collab-dropdown-empty">
                   Оригинальные треки не найдены (каверы исключены)
                 </div>
               ) : (
@@ -73,8 +72,10 @@ export default function OriginalTrackManager({
                     className="entity-dropdown-item"
                     onClick={() => handleSelect(t.id)}
                   >
-                    <span style={{ fontWeight: 600 }}>{t.title}</span>
-                    <span className="entity-genre-text">{t.artist?.name || 'Исполнитель'}</span>
+                    <span className="entity-name-bold">{t.title}</span>
+                    <span className="entity-genre-text">
+                      {t.artist?.name || 'Исполнитель'}
+                    </span>
                   </div>
                 ))
               )}
@@ -88,7 +89,9 @@ export default function OriginalTrackManager({
           <div className="entity-card-left">
             <span className="entity-badge cover-badge">Оригинал</span>
             <span className="entity-name-text">{selectedTrack.title}</span>
-            <span className="entity-genre-text">— {selectedTrack.artist?.name || 'Неизвестный'}</span>
+            <span className="entity-genre-text">
+              — {selectedTrack.artist?.name || 'Неизвестный'}
+            </span>
           </div>
 
           {!disabled && (

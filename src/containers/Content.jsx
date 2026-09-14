@@ -7,6 +7,8 @@ import CreateArtistModal from '../components/CreateArtistModal';
 import EditEntityModal from '../components/EditEntityModal';
 import TrackRow from '../components/TrackRow';
 import InputField from '../components/InputField';
+import Button from '../components/Button';
+import AgeBadge from '../components/AgeBadge';
 
 import defaultAvatar from '../assets/Шотландская веслоухая.jpg';
 import edit_icon from '../assets/edit-icon.svg';
@@ -31,14 +33,16 @@ export default function Content() {
   const navigate = useNavigate();
   const { playTrack, currentTrack, isPlaying } = useAudioPlayer();
   const currentUser = apiClient.getUser();
-  const isStaff = currentUser && (currentUser.role === 'admin' || currentUser.role === 'moderator');
+  const isStaff =
+    currentUser &&
+    (currentUser.role === 'admin' || currentUser.role === 'moderator');
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const [artistsRes, tracksRes] = await Promise.all([
         apiClient.request('/api/artists'),
-        apiClient.request('/api/charts/tracks')
+        apiClient.request('/api/charts/tracks'),
       ]);
       if (artistsRes?.data) setArtists(artistsRes.data);
       if (tracksRes?.data) setTopTracks(tracksRes.data);
@@ -55,7 +59,10 @@ export default function Content() {
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(e.target)
+      ) {
         setIsSearchFocused(false);
       }
     };
@@ -77,15 +84,20 @@ export default function Content() {
     const matchedArtists = artists.filter(
       (a) =>
         (a.name && a.name.toLowerCase().includes(query)) ||
-        (a.genre && a.genre.toLowerCase().includes(query))
+        (a.genre && a.genre.toLowerCase().includes(query)),
     );
 
     const matchedTracks = topTracks.filter((t) => {
       const titleMatch = t.title && t.title.toLowerCase().includes(query);
-      const artistMatch = t.artist && t.artist.name && t.artist.name.toLowerCase().includes(query);
+      const artistMatch =
+        t.artist &&
+        t.artist.name &&
+        t.artist.name.toLowerCase().includes(query);
       const collabsMatch =
         Array.isArray(t.collaborators) &&
-        t.collaborators.some((c) => c.name && c.name.toLowerCase().includes(query));
+        t.collaborators.some(
+          (c) => c.name && c.name.toLowerCase().includes(query),
+        );
 
       return Boolean(titleMatch || artistMatch || collabsMatch);
     });
@@ -97,7 +109,10 @@ export default function Content() {
     e.stopPropagation();
     if (!window.confirm('Удалить этого исполнителя?')) return;
     try {
-      await apiClient.request(`/api/artists/${artistId}`, { method: 'DELETE', requireAuth: true });
+      await apiClient.request(`/api/artists/${artistId}`, {
+        method: 'DELETE',
+        requireAuth: true,
+      });
       fetchData();
     } catch (e) {
       alert(e.message || 'Ошибка удаления');
@@ -106,7 +121,8 @@ export default function Content() {
 
   const displayedTracks = topTracks.slice(0, chartLimit);
   const isDropdownOpen = isSearchFocused && debouncedQuery.trim().length > 0;
-  const hasResults = searchResults.artists.length > 0 || searchResults.tracks.length > 0;
+  const hasResults =
+    searchResults.artists.length > 0 || searchResults.tracks.length > 0;
 
   return (
     <>
@@ -158,10 +174,14 @@ export default function Content() {
             />
 
             {isDropdownOpen && (
-              <div className="search-dropdown-menu" onMouseDown={(e) => e.stopPropagation()}>
+              <div
+                className="search-dropdown-menu"
+                onMouseDown={(e) => e.stopPropagation()}
+              >
                 {!hasResults ? (
                   <div className="search-dropdown-empty">
-                    Ничего не найдено по запросу «<strong>{debouncedQuery}</strong>»
+                    Ничего не найдено по запросу «
+                    <strong>{debouncedQuery}</strong>»
                   </div>
                 ) : (
                   <>
@@ -169,12 +189,16 @@ export default function Content() {
                       <div className="search-category-group">
                         <div className="search-category-header">
                           <span>Треки</span>
-                          <span className="search-category-count">{searchResults.tracks.length}</span>
+                          <span className="search-category-count">
+                            {searchResults.tracks.length}
+                          </span>
                         </div>
                         <div className="search-category-items">
                           {searchResults.tracks.map((track) => {
                             const isCurrentPlaying =
-                              currentTrack && String(currentTrack.id) === String(track.id) && isPlaying;
+                              currentTrack &&
+                              String(currentTrack.id) === String(track.id) &&
+                              isPlaying;
 
                             return (
                               <div
@@ -197,16 +221,31 @@ export default function Content() {
                                 </div>
                                 <div className="search-track-info">
                                   <div className="search-track-title-row">
-                                    <span className="search-track-title">{track.title}</span>
+                                    <span className="search-track-title">
+                                      {track.title}
+                                    </span>
+                                    {track.age_restriction && (
+                                      <AgeBadge size="small" />
+                                    )}
                                     {track.is_cover && (
-                                      <span className="search-track-cover-tag">кавер</span>
+                                      <span className="search-track-cover-tag">
+                                        кавер
+                                      </span>
                                     )}
                                   </div>
                                   <span className="search-track-artist">
-                                    {track.artist?.name || 'Неизвестный исполнитель'}
-                                    {Array.isArray(track.collaborators) && track.collaborators.length > 0 && (
-                                      <> feat. {track.collaborators.map((c) => c.name).join(', ')}</>
-                                    )}
+                                    {track.artist?.name ||
+                                      'Неизвестный исполнитель'}
+                                    {Array.isArray(track.collaborators) &&
+                                      track.collaborators.length > 0 && (
+                                        <>
+                                          {' '}
+                                          feat.{' '}
+                                          {track.collaborators
+                                            .map((c) => c.name)
+                                            .join(', ')}
+                                        </>
+                                      )}
                                   </span>
                                 </div>
                               </div>
@@ -220,7 +259,9 @@ export default function Content() {
                       <div className="search-category-group">
                         <div className="search-category-header">
                           <span>Исполнители</span>
-                          <span className="search-category-count">{searchResults.artists.length}</span>
+                          <span className="search-category-count">
+                            {searchResults.artists.length}
+                          </span>
                         </div>
                         <div className="search-category-items">
                           {searchResults.artists.map((artist) => (
@@ -238,8 +279,12 @@ export default function Content() {
                                 className="search-artist-avatar"
                               />
                               <div className="search-artist-info">
-                                <span className="search-artist-name">{artist.name}</span>
-                                <span className="search-artist-genre">{artist.genre}</span>
+                                <span className="search-artist-name">
+                                  {artist.name}
+                                </span>
+                                <span className="search-artist-genre">
+                                  {artist.genre}
+                                </span>
                               </div>
                               <span className="search-badge">Исполнитель</span>
                             </div>
@@ -257,19 +302,23 @@ export default function Content() {
         <div className="content-container">
           <div className="content-actions-panel">
             {currentUser && (
-              <button
-                className="content-actions-panel-button"
-                onClick={() => setIsArtistModalOpen(true)}
-              >
-                Добавить исполнителя
-              </button>
+              <>
+                <Button
+                  variant="primary"
+                  onClick={() => setIsArtistModalOpen(true)}
+                >
+                  Добавить исполнителя
+                </Button>
+                <Button variant="secondary">Алгоритмы</Button>
+                <div className="content-actions-panel-block" />
+              </>
             )}
           </div>
 
-          <div className="artists-catalog-section" style={{ gap: '2.5rem' }}>
+          <div className="artists-catalog-section">
             <div>
               <div className="chart-header-row">
-                <h2 className="section-heading" style={{ margin: 0 }}>
+                <h2 className="section-heading section-heading-flush">
                   Топ чарт треков
                 </h2>
                 <div className="chart-filter-buttons">
@@ -298,7 +347,9 @@ export default function Content() {
                       index={idx}
                       track={track}
                       isPlaying={
-                        currentTrack && String(currentTrack.id) === String(track.id) && isPlaying
+                        currentTrack &&
+                        String(currentTrack.id) === String(track.id) &&
+                        isPlaying
                       }
                       onPlay={() => playTrack(track, displayedTracks)}
                     />
@@ -308,7 +359,7 @@ export default function Content() {
             </div>
 
             <div>
-              <h2 className="section-heading" style={{ marginBottom: '1rem' }}>
+              <h2 className="section-heading section-heading-spaced">
                 Популярные исполнители
               </h2>
               {loading ? (
@@ -326,7 +377,10 @@ export default function Content() {
                       onClick={() => navigate(`/artists/${artist.id}`)}
                     >
                       {isStaff && (
-                        <div className="card-staff-controls" onClick={(e) => e.stopPropagation()}>
+                        <div
+                          className="card-staff-controls"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <button
                             type="button"
                             className="staff-btn edit"
@@ -352,7 +406,9 @@ export default function Content() {
                       />
                       <div className="artist-card-info">
                         <h3 className="artist-card-name">{artist.name}</h3>
-                        <span className="artist-card-genre">{artist.genre}</span>
+                        <span className="artist-card-genre">
+                          {artist.genre}
+                        </span>
                         <span className="artist-card-plays">
                           {artist.plays_count || 0} прослушиваний
                         </span>
