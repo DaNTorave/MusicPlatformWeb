@@ -42,6 +42,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: flex-start;
   gap: 2px;
   min-width: 0;
   flex: 1;
@@ -279,8 +280,9 @@
 .player-title-row {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 6px;
-  width: 100%;
+  max-width: 100%;
   min-width: 0;
 }
 
@@ -290,7 +292,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0;
+  min-width: 30px;
   flex: 0 1 auto;
 }
 

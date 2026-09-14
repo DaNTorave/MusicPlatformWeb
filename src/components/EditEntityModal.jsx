@@ -3,6 +3,7 @@ import { apiClient } from '../api/apiClient';
 
 import Button from './Button';
 import TrackSlotItem from './TrackSlotItem';
+import AgeRestrictionToggle from './AgeRestrictionToggle';
 
 import defaultCover from '../assets/Шотландская веслоухая.jpg';
 import closeIcon from '../assets/close-icon.svg';
@@ -21,6 +22,7 @@ export default function EditEntityModal({
   const [coverFile, setCoverFile] = useState(null);
   const [coverPreview, setCoverPreview] = useState('');
   const [audioFile, setAudioFile] = useState(null);
+  const [ageRestriction, setAgeRestriction] = useState(false);
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -33,6 +35,9 @@ export default function EditEntityModal({
       setCoverFile(null);
       setAudioFile(null);
       setErrorMsg('');
+      setAgeRestriction(
+        Boolean(item.age_restriction || item.has_age_restriction),
+      );
 
       if (type === 'album') {
         setTracks(
@@ -40,6 +45,9 @@ export default function EditEntityModal({
             id: t.id,
             title: t.title || '',
             audioFile: null,
+            age_restriction: Boolean(
+              t.age_restriction || t.has_age_restriction,
+            ),
           })),
         );
       }
@@ -57,7 +65,10 @@ export default function EditEntityModal({
   };
 
   const handleAddTrackSlot = () => {
-    setTracks((prev) => [...prev, { id: null, title: '', audioFile: null }]);
+    setTracks((prev) => [
+      ...prev,
+      { id: null, title: '', audioFile: null, age_restriction: false },
+    ]);
   };
 
   const handleRemoveTrack = (index) => {
@@ -105,11 +116,22 @@ export default function EditEntityModal({
       if (type === 'track' && audioFile) {
         formData.append('audio', audioFile);
       }
+      if (type === 'track') {
+        formData.append(
+          'age_restriction',
+          ageRestriction ? 'true' : 'false',
+        );
+      }
 
       if (type === 'album') {
         tracks.forEach((track, idx) => {
           if (track.id) formData.append(`tracks[${idx}][id]`, track.id);
           formData.append(`tracks[${idx}][title]`, track.title);
+          formData.append(`tracks[${idx}][position]`, track.position || idx + 1);
+          formData.append(
+            `tracks[${idx}][age_restriction]`,
+            track.age_restriction ? 'true' : 'false',
+          );
           if (track.audioFile) {
             formData.append(`tracks[${idx}][audio]`, track.audioFile);
           }
@@ -219,6 +241,14 @@ export default function EditEntityModal({
                   disabled={loading}
                 />
               </div>
+            )}
+
+            {type === 'track' && (
+              <AgeRestrictionToggle
+                checked={ageRestriction}
+                onChange={setAgeRestriction}
+                disabled={loading}
+              />
             )}
 
             {type === 'album' && (

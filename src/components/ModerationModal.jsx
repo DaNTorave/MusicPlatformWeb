@@ -6,6 +6,7 @@ import Button from './Button';
 import TrackSlotItem from './TrackSlotItem';
 import CollaboratorsManager from './CollaboratorsManager';
 import OriginalTrackManager from './OriginalTrackManager';
+import AgeRestrictionToggle from './AgeRestrictionToggle';
 
 import playIcon from '../assets/play-icon.svg';
 import pauseIcon from '../assets/pause-icon.svg';
@@ -33,6 +34,7 @@ export default function ModerationModal({
 
   const [isCover, setIsCover] = useState(false);
   const [originalTrackId, setOriginalTrackId] = useState(null);
+  const [isAgeRestricted, setIsAgeRestricted] = useState(false);
 
   const {
     playTrack,
@@ -70,11 +72,17 @@ export default function ModerationModal({
           audioFile: null,
           is_cover: Boolean(t.is_cover || t.original_track_id),
           original_track_id: t.original_track_id || null,
+          age_restriction: Boolean(
+            t.age_restriction || t.has_age_restriction,
+          ),
         })),
       );
 
       setIsCover(Boolean(item.is_cover || item.original_track_id));
       setOriginalTrackId(item.original_track_id || null);
+      setIsAgeRestricted(
+        Boolean(item.age_restriction || item.has_age_restriction),
+      );
 
       const existingCollabs = (item.collaborators || []).map((c) => c.id);
       setCollaborators(existingCollabs);
@@ -183,6 +191,10 @@ export default function ModerationModal({
     if (schemaType === 'track') {
       formData.append('is_cover', isCover ? 'true' : 'false');
       formData.append('position', 1);
+      formData.append(
+        'age_restriction',
+        isAgeRestricted ? 'true' : 'false',
+      );
       if (isCover && originalTrackId) {
         formData.append('original_track_id', originalTrackId);
       }
@@ -202,6 +214,10 @@ export default function ModerationModal({
         formData.append(
           `tracks[${idx}][is_cover]`,
           track.is_cover ? 'true' : 'false',
+        );
+        formData.append(
+          `tracks[${idx}][age_restriction]`,
+          track.age_restriction ? 'true' : 'false',
         );
         if (track.is_cover && track.original_track_id) {
           formData.append(
@@ -313,6 +329,14 @@ export default function ModerationModal({
                   disabled={loading}
                 />
               </div>
+            )}
+
+            {isSingleAudio && (
+              <AgeRestrictionToggle
+                checked={isAgeRestricted}
+                onChange={setIsAgeRestricted}
+                disabled={loading}
+              />
             )}
 
             {item.artist_info && (

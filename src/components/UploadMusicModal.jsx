@@ -6,10 +6,23 @@ import Button from './Button';
 import TrackSlotItem from './TrackSlotItem';
 import CollaboratorsManager from './CollaboratorsManager';
 import OriginalTrackManager from './OriginalTrackManager';
+import AgeRestrictionToggle from './AgeRestrictionToggle';
 
 import closeIcon from '../assets/close-icon.svg';
 
 import '../styles/AuthModal.css';
+
+const createEmptyTrack = (releaseYear = '') => ({
+  title: '',
+  audio: null,
+  duration: 0,
+  position: 1,
+  release_year: releaseYear,
+  collaboratorIds: [],
+  is_cover: false,
+  original_track_id: null,
+  age_restriction: false,
+});
 
 export default function UploadMusicModal({
   isOpen,
@@ -30,22 +43,12 @@ export default function UploadMusicModal({
   const [coverPreview, setCoverPreview] = useState('');
   const [singleAudio, setSingleAudio] = useState(null);
   const [singleDuration, setSingleDuration] = useState(0);
+  const [singleAgeRestriction, setSingleAgeRestriction] = useState(false);
 
   const [isCover, setIsCover] = useState(false);
   const [originalTrackId, setOriginalTrackId] = useState(null);
 
-  const [albumTracks, setAlbumTracks] = useState([
-    {
-      title: '',
-      audio: null,
-      duration: 0,
-      position: 1,
-      release_year: '',
-      collaboratorIds: [],
-      is_cover: false,
-      original_track_id: null,
-    },
-  ]);
+  const [albumTracks, setAlbumTracks] = useState([createEmptyTrack()]);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   const singleFileInputRef = useRef(null);
@@ -87,14 +90,8 @@ export default function UploadMusicModal({
     setAlbumTracks((prev) => [
       ...prev,
       {
-        title: '',
-        audio: null,
-        duration: 0,
+        ...createEmptyTrack(releaseYear || ''),
         position: prev.length + 1,
-        release_year: releaseYear || '',
-        collaboratorIds: [],
-        is_cover: false,
-        original_track_id: null,
       },
     ]);
   };
@@ -115,18 +112,7 @@ export default function UploadMusicModal({
         position: t.position || idx + 1,
       }));
       return reindexed.length === 0
-        ? [
-            {
-              title: '',
-              audio: null,
-              duration: 0,
-              position: 1,
-              release_year: releaseYear || '',
-              collaboratorIds: [],
-              is_cover: false,
-              original_track_id: null,
-            },
-          ]
+        ? [createEmptyTrack(releaseYear || '')]
         : reindexed;
     });
   };
@@ -266,6 +252,7 @@ export default function UploadMusicModal({
         collaboratorIds: [],
         is_cover: false,
         original_track_id: null,
+        age_restriction: false,
       });
     }
 
@@ -316,6 +303,10 @@ export default function UploadMusicModal({
         formData.append('duration_seconds', singleDuration || 0);
         formData.append('is_cover', isCover ? 'true' : 'false');
         formData.append('position', 1);
+        formData.append(
+          'age_restriction',
+          singleAgeRestriction ? 'true' : 'false',
+        );
         if (releaseYear) formData.append('release_year', releaseYear);
         if (isCover && originalTrackId) {
           formData.append('original_track_id', originalTrackId);
@@ -353,6 +344,10 @@ export default function UploadMusicModal({
               `tracks[${idx}][is_cover]`,
               track.is_cover ? 'true' : 'false',
             );
+            formData.append(
+              `tracks[${idx}][age_restriction]`,
+              track.age_restriction ? 'true' : 'false',
+            );
             if (track.is_cover && track.original_track_id) {
               formData.append(
                 `tracks[${idx}][original_track_id]`,
@@ -377,20 +372,10 @@ export default function UploadMusicModal({
         setCoverPreview('');
         setSingleAudio(null);
         setSingleDuration(0);
+        setSingleAgeRestriction(false);
         setIsCover(false);
         setOriginalTrackId(null);
-        setAlbumTracks([
-          {
-            title: '',
-            audio: null,
-            duration: 0,
-            position: 1,
-            release_year: '',
-            collaboratorIds: [],
-            is_cover: false,
-            original_track_id: null,
-          },
-        ]);
+        setAlbumTracks([createEmptyTrack()]);
         setSelectedCollaborators([]);
         if (onSuccess) onSuccess();
         onClose();
@@ -590,6 +575,14 @@ export default function UploadMusicModal({
               </div>
             )}
 
+            {uploadType === 'single' && (
+              <AgeRestrictionToggle
+                checked={singleAgeRestriction}
+                onChange={setSingleAgeRestriction}
+                disabled={loading}
+              />
+            )}
+
             <div className="auth-form-group">
               <label>
                 {uploadType === 'artist'
@@ -674,18 +667,7 @@ export default function UploadMusicModal({
                         type="button"
                         className="track-list-add-btn track-list-clear-btn"
                         onClick={() =>
-                          setAlbumTracks([
-                            {
-                              title: '',
-                              audio: null,
-                              duration: 0,
-                              position: 1,
-                              release_year: '',
-                              collaboratorIds: [],
-                              is_cover: false,
-                              original_track_id: null,
-                            },
-                          ])
+                          setAlbumTracks([createEmptyTrack(releaseYear || '')])
                         }
                       >
                         Очистить все

@@ -2,10 +2,13 @@ import React, { useRef, useState } from 'react';
 
 import CollaboratorsManager from './CollaboratorsManager';
 import OriginalTrackManager from './OriginalTrackManager';
+import AgeRestrictionToggle from './AgeRestrictionToggle';
 
 import closeIcon from '../assets/close-icon.svg';
 import playIcon from '../assets/play-icon.svg';
 import pauseIcon from '../assets/pause-icon.svg';
+
+import '../styles/AuthModal.css';
 
 export default function TrackSlotItem({
   index,
@@ -34,6 +37,7 @@ export default function TrackSlotItem({
   const audioName = track.audio?.name || track.audioFile?.name;
   const collaboratorIds = track.collaboratorIds || [];
   const isCover = Boolean(track.is_cover);
+  const isAgeRestricted = Boolean(track.age_restriction);
 
   const handleCollaboratorsChange = (newIds) => {
     onChange(index, 'collaboratorIds', newIds);
@@ -50,6 +54,10 @@ export default function TrackSlotItem({
     }
   };
 
+  const handleAgeRestrictionToggle = (next) => {
+    onChange(index, 'age_restriction', next);
+  };
+
   return (
     <div className="track-slot-card">
       <div
@@ -62,11 +70,8 @@ export default function TrackSlotItem({
           if (!isNaN(fromIdx) && fromIdx !== index) onMove(fromIdx, index);
         }}
       >
-        <span
-          className="track-slot-handle"
-          title="Перетащите для смены порядка"
-        >
-          ☰
+        <span className="track-slot-handle" title="Перетащите для смены порядка">
+          =
         </span>
 
         <input
@@ -98,7 +103,7 @@ export default function TrackSlotItem({
         <input
           type="text"
           className="track-slot-input-title"
-          placeholder={`Название трека #${track.position || index + 1}`}
+          placeholder={`Название трека ${track.position || index + 1}`}
           value={track.title}
           onChange={(e) => onChange(index, 'title', e.target.value)}
           required
@@ -118,9 +123,9 @@ export default function TrackSlotItem({
           >
             {hasAudio
               ? audioName
-                ? `✓ ${audioName}`
-                : '✓ Аудио'
-              : '+ Файл трека'}
+                ? audioName
+                : 'Аудио загружено'
+              : 'Файл трека'}
           </button>
 
           <input
@@ -146,7 +151,7 @@ export default function TrackSlotItem({
           >
             {collaboratorIds.length > 0
               ? `Соавторы (${collaboratorIds.length})`
-              : '+ Соавтор'}
+              : 'Соавтор'}
           </button>
         )}
 
@@ -157,8 +162,15 @@ export default function TrackSlotItem({
           disabled={disabled}
           title="Отметить трек как кавер"
         >
-          {isCover ? '✓ Кавер' : '+ Кавер'}
+          {isCover ? 'Кавер' : 'Кавер'}
         </button>
+
+        <AgeRestrictionToggle
+          compact
+          checked={isAgeRestricted}
+          onChange={handleAgeRestrictionToggle}
+          disabled={disabled}
+        />
 
         <div className="track-slot-arrows">
           <button
@@ -166,16 +178,18 @@ export default function TrackSlotItem({
             className="track-slot-nav-btn"
             onClick={() => onMove(index, index - 1)}
             disabled={index === 0 || disabled}
+            title="Выше"
           >
-            ▲
+            Вверх
           </button>
           <button
             type="button"
             className="track-slot-nav-btn"
             onClick={() => onMove(index, index + 1)}
             disabled={index === total - 1 || disabled}
+            title="Ниже"
           >
-            ▼
+            Вниз
           </button>
         </div>
 

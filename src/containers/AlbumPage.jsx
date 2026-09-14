@@ -170,10 +170,6 @@ export default function AlbumPage() {
                 track={track}
                 isPlaying={currentTrack?.id === track.id && isPlaying}
                 onPlay={(t) => playTrack(t, formattedAlbumTracks)}
-                canEdit={isStaff}
-                onEdit={(t) =>
-                  setEditModal({ isOpen: true, item: t, type: 'track' })
-                }
                 canDelete={isStaff}
                 onDelete={handleDeleteTrack}
                 showAlbumPosition={true}
