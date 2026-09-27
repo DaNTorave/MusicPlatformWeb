@@ -10,6 +10,7 @@ import pauseIcon from '../assets/pause-icon.svg';
 
 import '../styles/AuthModal.css';
 
+// Слот трека в списке альбома
 export default function TrackSlotItem({
   index,
   track,
@@ -26,6 +27,7 @@ export default function TrackSlotItem({
   mainArtist = null,
 }) {
   const fileInputRef = useRef(null);
+  // Состояния для отображения панелей соавторов и кавера
   const [showCollaborators, setShowCollaborators] = useState(false);
   const [showCoverPanel, setShowCoverPanel] = useState(() =>
     Boolean(track.is_cover),
@@ -39,10 +41,12 @@ export default function TrackSlotItem({
   const isCover = Boolean(track.is_cover);
   const isAgeRestricted = Boolean(track.age_restriction);
 
+  // Изменение списка соавторов
   const handleCollaboratorsChange = (newIds) => {
     onChange(index, 'collaboratorIds', newIds);
   };
 
+  // Переключение режима кавера
   const toggleCover = () => {
     const nextState = !isCover;
     onChange(index, 'is_cover', nextState);
@@ -54,6 +58,7 @@ export default function TrackSlotItem({
     }
   };
 
+  // Переключение возрастного ограничения
   const handleAgeRestrictionToggle = (next) => {
     onChange(index, 'age_restriction', next);
   };
@@ -89,6 +94,7 @@ export default function TrackSlotItem({
           disabled={disabled}
         />
 
+        {/* Кнопка воспроизведения */}
         {showPlay && onPlay && (
           <button
             type="button"
@@ -141,6 +147,7 @@ export default function TrackSlotItem({
           />
         </div>
 
+        {/* Кнопка управления соавторами */}
         {mainArtist && (
           <button
             type="button"
@@ -155,6 +162,7 @@ export default function TrackSlotItem({
           </button>
         )}
 
+        {/* Кнопка переключения кавера */}
         <button
           type="button"
           className={`track-slot-nav-btn track-slot-cover-btn ${isCover ? 'is-active' : ''}`}
@@ -193,6 +201,7 @@ export default function TrackSlotItem({
           </button>
         </div>
 
+        {/* Кнопка удаления слота */}
         {onRemove && (
           <button
             type="button"
@@ -206,6 +215,7 @@ export default function TrackSlotItem({
         )}
       </div>
 
+      {/* Панель выбора оригинального трека для кавера */}
       {isCover && showCoverPanel && (
         <div className="meta-box-card meta-box-card-nested">
           <div className="meta-box-header">
@@ -222,6 +232,7 @@ export default function TrackSlotItem({
         </div>
       )}
 
+      {/* Панель управления соавторами */}
       {showCollaborators && mainArtist && (
         <div className="track-slot-collab-wrapper">
           <CollaboratorsManager

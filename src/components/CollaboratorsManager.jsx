@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 import close_icon from '../assets/close-icon.svg';
 
 export default function CollaboratorsManager({
@@ -8,9 +9,11 @@ export default function CollaboratorsManager({
   onChange,
   disabled = false,
 }) {
+  // Состояние поискового запроса и открытия выпадающего списка
   const [searchQuery, setSearchQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  // Фильтрация артистов по запросу с исключением основного и уже выбранных
   const filteredSuggestions = availableArtists.filter((artist) => {
     const isMain = String(artist.id) === String(mainArtist?.id);
     const isAlreadySelected = collaboratorIds.includes(artist.id);
@@ -20,16 +23,19 @@ export default function CollaboratorsManager({
     return !isMain && !isAlreadySelected && matchesQuery;
   });
 
+  // Добавление соавтора в список
   const handleAddCollaborator = (artistId) => {
     onChange([...collaboratorIds, artistId]);
     setSearchQuery('');
     setIsDropdownOpen(false);
   };
 
+  // Удаление соавтора из списка
   const handleRemoveCollaborator = (artistId) => {
     onChange(collaboratorIds.filter((id) => id !== artistId));
   };
 
+  // Перемещение соавтора вверх или вниз по списку
   const handleMove = (index, direction) => {
     const newIndex = index + direction;
     if (newIndex < 0 || newIndex >= collaboratorIds.length) return;
@@ -45,6 +51,7 @@ export default function CollaboratorsManager({
         <span className="meta-box-title">Авторы и соавторы</span>
       </div>
 
+      {/* Поиск артистов для добавления в соавторы */}
       {!disabled && (
         <div className="collab-search-container">
           <input
@@ -85,6 +92,7 @@ export default function CollaboratorsManager({
       )}
 
       <div className="collab-list">
+        {/* Основной артист всегда первый в списке */}
         {mainArtist && (
           <div className="entity-card-row is-main">
             <div className="entity-card-left">
@@ -95,6 +103,7 @@ export default function CollaboratorsManager({
           </div>
         )}
 
+        {/* Список выбранных соавторов с возможностью перемещения и удаления */}
         {collaboratorIds.map((cId, idx) => {
           const artist = availableArtists.find(
             (a) => String(a.id) === String(cId),

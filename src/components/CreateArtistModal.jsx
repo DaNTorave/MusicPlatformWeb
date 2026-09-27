@@ -6,6 +6,7 @@ import Button from './Button';
 import '../styles/AuthModal.css';
 
 export default function CreateArtistModal({ isOpen, onClose, onSuccess }) {
+  // Состояния для полей формы и статусов
   const [name, setName] = useState('');
   const [genre, setGenre] = useState('');
   const [avatar, setAvatar] = useState(null);
@@ -15,6 +16,7 @@ export default function CreateArtistModal({ isOpen, onClose, onSuccess }) {
 
   if (!isOpen) return null;
 
+  // Отправка формы создания артиста
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
@@ -29,6 +31,7 @@ export default function CreateArtistModal({ isOpen, onClose, onSuccess }) {
     try {
       const response = await apiClient.upload('/api/upload/artist', formData);
       setSuccessMsg('Артист успешно отправлен на модерацию!');
+      // Сброс формы и закрытие через 1.2 секунды
       setTimeout(() => {
         setName('');
         setGenre('');

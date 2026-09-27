@@ -27,9 +27,11 @@ export default function InputField({
   className = '',
   children,
 }) {
+  // Состояние видимости пароля
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === 'password';
 
+  // Очистка поля
   const handleClear = (e) => {
     e.stopPropagation();
     if (onClear) {
@@ -67,6 +69,7 @@ export default function InputField({
           className={`input-element ${error ? 'input-error' : ''} ${leftIcon ? 'with-left-icon' : ''} ${clearable && value ? 'with-clear' : ''}`}
         />
 
+        {/* Кнопка очистки */}
         {clearable && Boolean(value) && !disabled && (
           <button
             type="button"
@@ -79,6 +82,7 @@ export default function InputField({
           </button>
         )}
 
+        {/* Кнопка переключения видимости пароля */}
         {isPassword && (
           <button
             type="button"

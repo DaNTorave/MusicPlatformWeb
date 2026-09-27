@@ -22,6 +22,7 @@ async function parseResponse(response) {
 }
 
 export const apiClient = {
+  // Сохранение токена в localStorage
   setToken(token) {
     if (token) {
       localStorage.setItem('authToken', token);
@@ -29,19 +30,22 @@ export const apiClient = {
       localStorage.removeItem('authToken');
     }
   },
+  // Получение токена из localStorage
   getToken() {
     return localStorage.getItem('authToken');
   },
 
-  // Запись токена
+  // Сохранение данных пользователя
   setUser(user) {
     if (user) {
       localStorage.setItem('user', JSON.stringify(user));
+      // Оповещение всех компонентов об успешном входе
       window.dispatchEvent(new CustomEvent('auth:login'));
     } else {
       localStorage.removeItem('user');
     }
   },
+  // Получение данных пользователя
   getUser() {
     const user = localStorage.getItem('user');
     try {
@@ -51,11 +55,13 @@ export const apiClient = {
     }
   },
 
+  // Очистка сессии (выход)
   clearSession() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
   },
 
+  // Основной метод для выполнения запросов к API
   async request(url, options = {}) {
     const {
       method = 'GET',
@@ -82,6 +88,7 @@ export const apiClient = {
       console.log(`[API] Ответ от сервера:`, parsedData);
 
       if (!response.ok) {
+        // При 401 ошибке очистка сессии и оповещение приложения
         if (response.status === 401) {
           this.clearSession();
           window.dispatchEvent(new CustomEvent('auth:unauthorized'));
@@ -114,6 +121,7 @@ export const apiClient = {
     }
   },
 
+  // Авторизация
   async login(credentials) {
     const response = await this.request('/api/login', {
       method: 'POST',
@@ -130,6 +138,7 @@ export const apiClient = {
     return response;
   },
 
+  // Регистрация с последующим автоматическим входом
   async registerAndLogin(userData) {
     const registerResponse = await this.request('/api/register', {
       method: 'POST',
@@ -157,6 +166,7 @@ export const apiClient = {
     };
   },
 
+  // Загрузка файлов (FormData)
   async upload(url, formData) {
     const token = this.getToken();
     const headers = {};

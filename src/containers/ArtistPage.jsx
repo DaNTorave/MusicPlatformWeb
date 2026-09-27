@@ -21,6 +21,7 @@ import '../styles/ArtistPage.css';
 export default function ArtistPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  // Состояния данных артиста
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,6 +33,7 @@ export default function ArtistPage() {
     type: null,
   });
 
+  // Состояния поиска
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -43,6 +45,7 @@ export default function ArtistPage() {
     currentUser &&
     (currentUser.role === 'admin' || currentUser.role === 'moderator');
 
+  // Загрузка данных артиста
   const fetchArtist = async () => {
     setLoading(true);
     setError(null);
@@ -62,6 +65,7 @@ export default function ArtistPage() {
     fetchArtist();
   }, [id]);
 
+  // Удаление артиста
   const handleDeleteArtist = async () => {
     if (!window.confirm('Удалить исполнителя и все его релизы?')) return;
     try {
@@ -75,6 +79,7 @@ export default function ArtistPage() {
     }
   };
 
+  // Удаление альбома
   const handleDeleteAlbum = async (e, albumId) => {
     e.stopPropagation();
     if (!window.confirm('Удалить этот альбом и все треки в нем?')) return;
@@ -89,6 +94,7 @@ export default function ArtistPage() {
     }
   };
 
+  // Удаление трека
   const handleDeleteTrack = async (e, trackId) => {
     if (e) e.stopPropagation();
     if (!window.confirm('Удалить этот трек?')) return;
@@ -103,6 +109,7 @@ export default function ArtistPage() {
     }
   };
 
+  // Формирование списка популярных треков с сортировкой по прослушиваниям
   const popularTracks = useMemo(() => {
     if (!data) return [];
 
@@ -131,6 +138,7 @@ export default function ArtistPage() {
       artist: c.artist,
     }));
 
+    // Объединение всех треков с удалением дубликатов
     const allTracksMap = new Map();
     [...singles, ...fromAlbums, ...collabs].forEach((t) => {
       if (!allTracksMap.has(t.id)) {
@@ -143,6 +151,7 @@ export default function ArtistPage() {
     );
   }, [data]);
 
+  // Дебаунс поискового запроса
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchQuery);
@@ -150,6 +159,7 @@ export default function ArtistPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Закрытие выпадающего списка при клике вне области поиска
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -163,6 +173,7 @@ export default function ArtistPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Результаты поиска по трекам и альбомам
   const searchResults = useMemo(() => {
     const query = debouncedQuery.trim().toLowerCase();
     if (!query) return { tracks: [], albums: [] };
@@ -178,6 +189,7 @@ export default function ArtistPage() {
     return { tracks: matchedTracks, albums: matchedAlbums };
   }, [debouncedQuery, popularTracks, data]);
 
+  // Воспроизведение всего альбома
   const handlePlayAlbum = (e, album) => {
     if (e) {
       e.preventDefault();
@@ -283,6 +295,7 @@ export default function ArtistPage() {
         </div>
       </div>
 
+      {/* Поиск по трекам и альбомам артиста */}
       <div className="content-search" ref={searchContainerRef}>
         <div className="search-bar-wrapper artist-bar-wrapper">
           <InputField
@@ -329,6 +342,7 @@ export default function ArtistPage() {
                 </div>
               ) : (
                 <>
+                  {/* Результаты по трекам */}
                   {searchResults.tracks.length > 0 && (
                     <div className="search-category-group">
                       <div className="search-category-header">
@@ -387,6 +401,7 @@ export default function ArtistPage() {
                     </div>
                   )}
 
+                  {/* Результаты по альбомам */}
                   {searchResults.albums.length > 0 && (
                     <div className="search-category-group">
                       <div className="search-category-header">
@@ -432,6 +447,7 @@ export default function ArtistPage() {
       </div>
 
       <Routes>
+        {/* Страница всех треков */}
         <Route
           path="tracks"
           element={
@@ -464,6 +480,7 @@ export default function ArtistPage() {
             </div>
           }
         />
+        {/* Основная страница артиста */}
         <Route
           path=""
           element={
@@ -500,6 +517,7 @@ export default function ArtistPage() {
                 )}
               </div>
 
+              {/* Секция синглов */}
               <div className="artist-section">
                 <h2>Синглы</h2>
                 {singles.length === 0 ? (
@@ -595,6 +613,7 @@ export default function ArtistPage() {
                 )}
               </div>
 
+              {/* Секция альбомов */}
               <div className="artist-section">
                 <h2>Альбомы</h2>
                 {albums.length === 0 ? (
@@ -703,6 +722,7 @@ export default function ArtistPage() {
                 )}
               </div>
 
+              {/* Секция участия в релизах */}
               {data.collab_tracks && data.collab_tracks.length > 0 && (
                 <div className="artist-section">
                   <h2>Участие в релизах</h2>

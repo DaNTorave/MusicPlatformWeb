@@ -32,6 +32,7 @@ export default function ModerationModal({
   const [availableTracks, setAvailableTracks] = useState([]);
   const [collaborators, setCollaborators] = useState([]);
 
+  // Состояния для кавера и возрастного ограничения
   const [isCover, setIsCover] = useState(false);
   const [originalTrackId, setOriginalTrackId] = useState(null);
   const [isAgeRestricted, setIsAgeRestricted] = useState(false);
@@ -45,6 +46,7 @@ export default function ModerationModal({
     stopPlayer,
   } = useAudioPlayer();
 
+  // Загрузка списков артистов и треков при открытии
   useEffect(() => {
     if (isOpen) {
       apiClient.request('/api/artists').then((res) => {
@@ -56,6 +58,7 @@ export default function ModerationModal({
     }
   }, [isOpen]);
 
+  // Заполнение полей при изменении item
   useEffect(() => {
     if (item) {
       setTitle(item.title || item.name || '');
@@ -91,6 +94,7 @@ export default function ModerationModal({
 
   if (!isOpen || !item) return null;
 
+  // Обработчик смены обложки
   const handleCoverChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -98,6 +102,7 @@ export default function ModerationModal({
       const previewUrl = URL.createObjectURL(file);
       setCoverPreview(previewUrl);
 
+      // Обновление обложки в плеере, если трек воспроизводится
       if (
         currentTrack &&
         (currentTrack.id === item.id ||
@@ -108,12 +113,14 @@ export default function ModerationModal({
     }
   };
 
+  // Изменение названия одиночного трека
   const handleSingleTitleChange = (e) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
     if (currentTrack?.id === item.id) updateTrackTitle(newTitle);
   };
 
+  // Изменение поля трека в альбоме
   const handleTrackChange = (index, field, value) => {
     const track = tracks[index];
     setTracks((prev) => {
@@ -127,6 +134,7 @@ export default function ModerationModal({
     }
   };
 
+  // Перемещение трека вверх или вниз
   const moveTrack = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= tracks.length) return;
     setTracks((prev) => {
@@ -137,10 +145,12 @@ export default function ModerationModal({
     });
   };
 
+  // Удаление трека из списка
   const handleRemoveTrack = (index) => {
     setTracks((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Воспроизведение одиночного трека
   const handlePlaySingle = () => {
     playTrack({
       id: item.id,
@@ -155,6 +165,7 @@ export default function ModerationModal({
     });
   };
 
+  // Воспроизведение трека из альбома
   const handlePlayAlbumTrack = (track) => {
     playTrack({
       id: track.id,
@@ -169,6 +180,7 @@ export default function ModerationModal({
     });
   };
 
+  // Отправка решения модератора
   const handleSubmit = (action) => {
     stopPlayer();
     const schemaType =
@@ -202,6 +214,7 @@ export default function ModerationModal({
 
     collaborators.forEach((id) => formData.append('collaborator_ids[]', id));
 
+    // Для альбома добавляются все треки
     if (item.type === 'album') {
       tracks.forEach((track, idx) => {
         if (track.id) formData.append(`tracks[${idx}][id]`, track.id);
@@ -230,6 +243,7 @@ export default function ModerationModal({
       });
     }
 
+    // Добавление причины отклонения при отклонении
     if (action === 'reject') {
       formData.append('status', 'rejected');
       formData.append('comment', rejectReason || 'Отклонено модератором');
@@ -245,6 +259,7 @@ export default function ModerationModal({
   const isAlbum = item.type === 'album';
   const isSinglePlaying = currentTrack?.id === item.id && isPlaying;
 
+  // Проверка возможности одобрения
   const isApproveDisabled = (() => {
     if (loading) return true;
     if (!title.trim()) return true;

@@ -6,6 +6,7 @@ import Button from './Button';
 
 import google_logo from '../assets/google.svg';
 import github_logo from '../assets/github.svg';
+
 import '../styles/Login.css';
 
 export default function Login({
@@ -13,10 +14,12 @@ export default function Login({
   onSwitchToRegister,
   onSwitchToReset,
 }) {
+  // Состояния полей и ошибок
   const [loginOrEmail, setLoginOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fieldError, setFieldError] = useState('');
 
+  // Мутация авторизации
   const { mutate, loading } = useMutation('/api/login', {
     method: 'POST',
     onSuccess: (data) => {
@@ -27,6 +30,7 @@ export default function Login({
     onError: (err) => {
       console.error('Ошибка входа:', err);
       let errorMessage = '';
+      // Обработка различных статусов ошибок
       if (err.status === 401) {
         errorMessage = 'Неверный логин или пароль';
       } else if (err.status === 400) {
@@ -47,6 +51,7 @@ export default function Login({
     },
   });
 
+  // Отправка формы входа
   const handleSubmit = (e) => {
     e.preventDefault();
     setFieldError('');
@@ -64,12 +69,14 @@ export default function Login({
     mutate({ login: loginOrEmail, password });
   };
 
+  // Определение типа поля ввода в зависимости от наличия @
   const getInputType = () => {
     return loginOrEmail.includes('@') && loginOrEmail.includes('.')
       ? 'email'
       : 'text';
   };
 
+  // Подсказка для поля ввода
   const getPlaceholder = () => {
     return loginOrEmail.includes('@') && loginOrEmail.includes('.')
       ? 'example@mail.com'

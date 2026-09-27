@@ -14,6 +14,7 @@ import volumeIcon from '../assets/volume-icon.svg';
 
 import '../styles/PlayerPage.css';
 
+// Страница полноэкранного плеера
 export default function PlayerPage() {
   const navigate = useNavigate();
   const {
@@ -27,10 +28,12 @@ export default function PlayerPage() {
     setVolume,
     audioRef,
   } = useAudioPlayer();
+  // Состояния прогресса и длительности
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
+  // Состояния вращения винила
   const [rotation, setRotation] = useState(0);
   const rotationRef = useRef(0);
   const lastTimeRef = useRef(null);
@@ -40,6 +43,7 @@ export default function PlayerPage() {
     rotationRef.current = rotation;
   }, [rotation]);
 
+  // Анимация вращения винила при воспроизведении
   useEffect(() => {
     if (!isPlaying) {
       lastTimeRef.current = null;
@@ -70,6 +74,7 @@ export default function PlayerPage() {
     };
   }, [isPlaying]);
 
+  // Обновление прогресса и длительности трека
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -113,6 +118,7 @@ export default function PlayerPage() {
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx !== -1 && currentIdx + 1 < queue.length;
 
+  // Формирование списка исполнителей
   const allArtists = [];
   if (currentTrack.artist && currentTrack.artist.name) {
     allArtists.push(currentTrack.artist);
@@ -134,6 +140,7 @@ export default function PlayerPage() {
   const originalTrack = currentTrack.original_track;
   const isCover = currentTrack.is_cover || Boolean(originalTrack);
 
+  // Перемотка трека
   const handleSeek = (e) => {
     const audio = audioRef.current;
     if (!audio || !duration) return;
@@ -144,6 +151,7 @@ export default function PlayerPage() {
     setProgress(newTime);
   };
 
+  // Форматирование времени
   const formatTime = (time) => {
     if (!time || isNaN(time)) return '0:00';
     const minutes = Math.floor(time / 60);
@@ -151,6 +159,7 @@ export default function PlayerPage() {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  // Переключение воспроизведения
   const handleTogglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -161,6 +170,7 @@ export default function PlayerPage() {
     }
   };
 
+  // Воспроизведение оригинального трека
   const handlePlayOriginal = () => {
     if (originalTrack) {
       playTrack({
@@ -180,6 +190,7 @@ export default function PlayerPage() {
       <div className="player-page-content">
         <div className="player-page-left">
           <div className="player-page-left-container">
+            {/* Вращающийся винил */}
             <div className={`vinyl-wrapper ${isPlaying ? 'spinning' : ''}`}>
               <div
                 className="vinyl-disc"
@@ -230,6 +241,7 @@ export default function PlayerPage() {
               </div>
             </div>
 
+            {/* Бейдж кавера */}
             {isCover && (
               <div
                 className={`player-page-cover-badge ${originalTrack ? 'clickable' : ''}`}

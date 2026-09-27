@@ -25,11 +25,13 @@ export default function TrackRow({
   showAlbumPosition = false,
   showCoverImg = true,
 }) {
+  // Состояние избранного и длительности трека
   const [isFavorite, setIsFavorite] = useState(false);
   const [duration, setDuration] = useState(
     () => track.duration_seconds || track.duration || 0,
   );
 
+  // Загрузка длительности из аудио, если она не указана
   useEffect(() => {
     const directDur = track.duration_seconds || track.duration;
     if (directDur && directDur > 0) {
@@ -65,6 +67,7 @@ export default function TrackRow({
     }
   }, [track.id, track.duration_seconds, track.duration]);
 
+  // Форматирование длительности в минуты и секунды
   const formatDuration = (seconds) => {
     if (!seconds || isNaN(seconds) || seconds <= 0) return '--:--';
     const mins = Math.floor(seconds / 60);
@@ -72,6 +75,7 @@ export default function TrackRow({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Формирование списка исполнителей
   const artistsList = [];
   if (track.artist && track.artist.name) {
     artistsList.push(track.artist);
@@ -94,6 +98,7 @@ export default function TrackRow({
     Boolean(track.original_track_id) ||
     Boolean(originalTrack);
 
+  // Переключение на оригинальный трек при клике на бейдж кавера
   const handleCoverClick = (e) => {
     e.stopPropagation();
     if (originalTrack && onPlay) {
@@ -105,6 +110,7 @@ export default function TrackRow({
     }
   };
 
+  // Скачивание трека
   const handleDownload = (e) => {
     e.stopPropagation();
     if (!track.id) return;
@@ -133,6 +139,7 @@ export default function TrackRow({
             className="track-row-cover"
           />
 
+          {/* Кнопка воспроизведения поверх обложки */}
           <button
             type="button"
             className={`track-cover-play-btn ${isPlaying ? 'visible' : ''}`}
@@ -177,6 +184,7 @@ export default function TrackRow({
             {track.title}
           </Link>
           {track.age_restriction && <AgeBadge size="small" />}
+          {/* Бейдж кавера */}
           {isCover && (
             <span
               className={`track-cover-badge ${originalTrack ? 'clickable' : ''}`}
@@ -225,6 +233,7 @@ export default function TrackRow({
       <div className="track-row-duration">{formatDuration(duration)}</div>
 
       <div className="track-row-actions" onClick={(e) => e.stopPropagation()}>
+        {/* Кнопка избранного */}
         <button
           type="button"
           className={`track-action-btn ${isFavorite ? 'active-fav' : ''}`}
@@ -241,6 +250,7 @@ export default function TrackRow({
           />
         </button>
 
+        {/* Кнопка скачивания */}
         <button
           type="button"
           className="track-action-btn download-btn"
@@ -250,6 +260,7 @@ export default function TrackRow({
           <img src={downloadIcon} alt="Скачать" className="action-icon" />
         </button>
 
+        {/* Кнопка редактирования */}
         {canEdit && (
           <button
             type="button"
@@ -264,6 +275,7 @@ export default function TrackRow({
           </button>
         )}
 
+        {/* Кнопка удаления */}
         {canDelete && (
           <button
             type="button"

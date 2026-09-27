@@ -9,6 +9,7 @@ import React, {
 const AudioContext = createContext(null);
 
 export const AudioProvider = ({ children }) => {
+  // Текущий трек с восстановлением из localStorage
   const [currentTrack, setCurrentTrack] = useState(() => {
     try {
       const saved = localStorage.getItem('player_track');
@@ -18,6 +19,7 @@ export const AudioProvider = ({ children }) => {
     }
   });
 
+  // Очередь воспроизведения
   const [queue, setQueue] = useState(() => {
     try {
       const saved = localStorage.getItem('player_queue');
@@ -27,6 +29,7 @@ export const AudioProvider = ({ children }) => {
     }
   });
 
+  // Состояние воспроизведения и громкости
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(() => {
     return parseFloat(localStorage.getItem('player_volume') || '0.8');
@@ -41,6 +44,7 @@ export const AudioProvider = ({ children }) => {
   const currentTrackRef = useRef(currentTrack);
   currentTrackRef.current = currentTrack;
 
+  // Инициализация аудио и подписка на события
   useEffect(() => {
     const audio = audioRef.current;
     audio.volume = volume;
@@ -72,11 +76,13 @@ export const AudioProvider = ({ children }) => {
     };
   }, []);
 
+  // Обновление громкости
   useEffect(() => {
     audioRef.current.volume = volume;
     localStorage.setItem('player_volume', volume.toString());
   }, [volume]);
 
+  // Переход к следующему треку
   const nextTrack = () => {
     const currentQ = queueRef.current;
     const currentT = currentTrackRef.current;
@@ -91,6 +97,7 @@ export const AudioProvider = ({ children }) => {
     }
   };
 
+  // Переход к предыдущему треку
   const prevTrack = () => {
     const currentQ = queueRef.current;
     const currentT = currentTrackRef.current;
@@ -109,6 +116,7 @@ export const AudioProvider = ({ children }) => {
     }
   };
 
+  // Обработка окончания трека
   useEffect(() => {
     const audio = audioRef.current;
     const handleEnded = () => {
@@ -121,10 +129,12 @@ export const AudioProvider = ({ children }) => {
     };
   }, []);
 
+  // Воспроизведение трека
   const playTrack = (track, newQueue = null) => {
     if (!track || !track.id) return;
     const audio = audioRef.current;
 
+    // Обновление очереди при необходимости
     if (newQueue && Array.isArray(newQueue)) {
       setQueue(newQueue);
       queueRef.current = newQueue;
@@ -139,6 +149,7 @@ export const AudioProvider = ({ children }) => {
     const isSameTrack =
       currentTrack && String(currentTrack.id) === String(track.id);
 
+    // Переключение паузы для текущего трека
     if (isSameTrack && !track.streamUrl) {
       if (!audio.src || currentSrcRef.current !== targetSrc) {
         audio.src = targetSrc;
@@ -156,6 +167,7 @@ export const AudioProvider = ({ children }) => {
       return;
     }
 
+    // Установка нового трека
     setCurrentTrack(track);
     currentTrackRef.current = track;
 
@@ -182,6 +194,7 @@ export const AudioProvider = ({ children }) => {
       });
   };
 
+  // Обновление названия текущего трека
   const updateTrackTitle = (newTitle) => {
     setCurrentTrack((prev) => {
       if (!prev) return prev;
@@ -193,6 +206,7 @@ export const AudioProvider = ({ children }) => {
     });
   };
 
+  // Обновление обложки текущего трека
   const updateTrackCover = (newCover) => {
     setCurrentTrack((prev) => {
       if (!prev) return prev;
@@ -204,6 +218,7 @@ export const AudioProvider = ({ children }) => {
     });
   };
 
+  // Остановка плеера и очистка
   const stopPlayer = () => {
     const audio = audioRef.current;
     if (audio) {

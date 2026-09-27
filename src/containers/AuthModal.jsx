@@ -10,16 +10,19 @@ export default function AuthModal({
   onLoginSuccess,
   initialTab = 'login',
 }) {
+  // Состояние активной вкладки и анимации закрытия
   const [activeTab, setActiveTab] = useState(initialTab);
   const [isClosing, setIsClosing] = useState(false);
   const [notification, setNotification] = useState(null);
 
+  // Установка активной вкладки при открытии
   useEffect(() => {
     if (isOpen) {
       setActiveTab(initialTab);
     }
   }, [isOpen, initialTab]);
 
+  // Закрытие с анимацией
   const handleClose = () => {
     setIsClosing(true);
     setTimeout(() => {
@@ -28,6 +31,7 @@ export default function AuthModal({
     }, 300);
   };
 
+  // Закрытие по Escape
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape' && isOpen) {
@@ -38,12 +42,14 @@ export default function AuthModal({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen]);
 
+  // Закрытие по клику на фон
   const handleBackgroundClick = (e) => {
     if (e.target === e.currentTarget) {
       handleClose();
     }
   };
 
+  // Блокировка прокрутки страницы при открытом модальном окне
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -55,6 +61,7 @@ export default function AuthModal({
     };
   }, [isOpen]);
 
+  // Показ уведомления на 8 секунд
   const showNotification = (msg) => {
     setNotification(msg);
     setTimeout(() => {
@@ -62,6 +69,7 @@ export default function AuthModal({
     }, 8000);
   };
 
+  // Успешный вход
   const handleSuccess = () => {
     if (onLoginSuccess) {
       onLoginSuccess();

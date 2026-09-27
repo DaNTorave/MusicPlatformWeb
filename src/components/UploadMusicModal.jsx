@@ -12,6 +12,7 @@ import closeIcon from '../assets/close-icon.svg';
 
 import '../styles/AuthModal.css';
 
+// Создание пустого слота трека
 const createEmptyTrack = (releaseYear = '') => ({
   title: '',
   audio: null,
@@ -24,6 +25,7 @@ const createEmptyTrack = (releaseYear = '') => ({
   age_restriction: false,
 });
 
+// Модальное окно загрузки музыки (сингл, альбом, артист)
 export default function UploadMusicModal({
   isOpen,
   onClose,
@@ -31,6 +33,7 @@ export default function UploadMusicModal({
   artistId: initialArtistId = '',
   artistName: initialArtistName = '',
 }) {
+  // Состояния для выбора типа загрузки и полей формы
   const [uploadType, setUploadType] = useState('single');
   const [titleOrName, setTitleOrName] = useState('');
   const [releaseYear, setReleaseYear] = useState('');
@@ -45,6 +48,7 @@ export default function UploadMusicModal({
   const [singleDuration, setSingleDuration] = useState(0);
   const [singleAgeRestriction, setSingleAgeRestriction] = useState(false);
 
+  // Состояния для кавера
   const [isCover, setIsCover] = useState(false);
   const [originalTrackId, setOriginalTrackId] = useState(null);
 
@@ -58,6 +62,7 @@ export default function UploadMusicModal({
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
+  // Загрузка списков артистов и треков при открытии
   useEffect(() => {
     if (isOpen) {
       apiClient
@@ -76,6 +81,7 @@ export default function UploadMusicModal({
     }
   }, [isOpen]);
 
+  // Сброс соавторов и установка artistId при открытии
   useEffect(() => {
     if (initialArtistId) {
       setArtistId(initialArtistId);
@@ -86,6 +92,7 @@ export default function UploadMusicModal({
 
   if (!isOpen) return null;
 
+  // Добавление нового слота трека в альбом
   const handleAddTrackSlot = () => {
     setAlbumTracks((prev) => [
       ...prev,
@@ -96,6 +103,7 @@ export default function UploadMusicModal({
     ]);
   };
 
+  // Изменение поля трека
   const handleTrackChange = (index, field, value) => {
     setAlbumTracks((prev) => {
       const updated = [...prev];
@@ -104,6 +112,7 @@ export default function UploadMusicModal({
     });
   };
 
+  // Удаление слота трека
   const handleRemoveTrackSlot = (index) => {
     setAlbumTracks((prev) => {
       const filtered = prev.filter((_, i) => i !== index);
@@ -117,6 +126,7 @@ export default function UploadMusicModal({
     });
   };
 
+  // Перемещение трека вверх или вниз
   const moveTrack = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= albumTracks.length) return;
     setAlbumTracks((prev) => {
@@ -127,6 +137,7 @@ export default function UploadMusicModal({
     });
   };
 
+  // Обработка одиночного аудиофайла с извлечением метаданных
   const applySingleFile = async (file) => {
     if (!file) return;
     setSingleAudio(file);
@@ -163,6 +174,7 @@ export default function UploadMusicModal({
         }
       }
 
+      // Извлечение обложки из метаданных
       if (metadata.common.picture && metadata.common.picture.length > 0) {
         const pic = metadata.common.picture[0];
         const blob = new Blob([pic.data], { type: pic.format });
@@ -180,6 +192,7 @@ export default function UploadMusicModal({
     }
   };
 
+  // Пакетная обработка аудиофайлов для альбома
   const processBatchAudioFiles = async (files) => {
     const audioFiles = Array.from(files).filter(
       (f) =>
@@ -218,6 +231,7 @@ export default function UploadMusicModal({
           trackYear = String(metadata.common.year);
         }
 
+        // Заполнение общих полей альбома из первого файла
         if (i === 0) {
           if (metadata.common.album && !titleOrName.trim()) {
             setTitleOrName(metadata.common.album);
@@ -266,6 +280,7 @@ export default function UploadMusicModal({
     setLoading(false);
   };
 
+  // Обработка перетаскивания файлов
   const handleDropzoneDrop = (e) => {
     e.preventDefault();
     setIsDraggingOver(false);
@@ -280,6 +295,7 @@ export default function UploadMusicModal({
     }
   };
 
+  // Отправка формы загрузки
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
@@ -291,12 +307,14 @@ export default function UploadMusicModal({
     try {
       let endpoint = '';
 
+      // Формирование данных для артиста
       if (uploadType === 'artist') {
         endpoint = '/api/upload/artist';
         formData.append('name', titleOrName.trim());
         formData.append('genre', genre.trim());
         if (coverFile) formData.append('avatar', coverFile);
       } else if (uploadType === 'single') {
+        // Формирование данных для сингла
         endpoint = '/api/upload/single';
         formData.append('title', titleOrName.trim());
         formData.append('artist_id', artistId);
@@ -317,6 +335,7 @@ export default function UploadMusicModal({
         if (coverFile) formData.append('cover', coverFile);
         if (singleAudio) formData.append('audio', singleAudio);
       } else if (uploadType === 'album') {
+        // Формирование данных для альбома
         endpoint = '/api/upload/album';
         formData.append('title', titleOrName.trim());
         formData.append('artist_id', artistId);
@@ -364,6 +383,7 @@ export default function UploadMusicModal({
       await apiClient.upload(endpoint, formData);
       setSuccessMsg('Материал успешно отправлен на модерацию!');
 
+      // Сброс формы и закрытие через 1.2 секунды
       setTimeout(() => {
         setSuccessMsg('');
         setTitleOrName('');
@@ -391,6 +411,7 @@ export default function UploadMusicModal({
     availableArtists.find((a) => String(a.id) === String(artistId)) ||
     (initialArtistId ? { id: initialArtistId, name: initialArtistName } : null);
 
+  // Проверка возможности отправки формы
   const isSubmitDisabled = (() => {
     if (loading) return true;
 
@@ -517,6 +538,7 @@ export default function UploadMusicModal({
               </div>
             )}
 
+            {/* Выбор основного исполнителя для сингла или альбома */}
             {uploadType !== 'artist' && !initialArtistId && (
               <div className="auth-form-group">
                 <label>Основной исполнитель *</label>
@@ -537,6 +559,7 @@ export default function UploadMusicModal({
               </div>
             )}
 
+            {/* Управление соавторами для сингла */}
             {uploadType === 'single' && (
               <CollaboratorsManager
                 mainArtist={currentMainArtist}
@@ -547,6 +570,7 @@ export default function UploadMusicModal({
               />
             )}
 
+            {/* Управление кавером для сингла */}
             {uploadType === 'single' && (
               <div className="meta-box-card">
                 <div className="meta-box-header">
@@ -583,6 +607,7 @@ export default function UploadMusicModal({
               />
             )}
 
+            {/* Загрузка обложки */}
             <div className="auth-form-group">
               <label>
                 {uploadType === 'artist'
@@ -612,6 +637,7 @@ export default function UploadMusicModal({
               />
             </div>
 
+            {/* Загрузка одиночного аудиофайла */}
             {uploadType === 'single' && (
               <div className="auth-form-group">
                 <label>Аудиозапись *</label>
@@ -655,6 +681,7 @@ export default function UploadMusicModal({
               </div>
             )}
 
+            {/* Загрузка треков альбома */}
             {uploadType === 'album' && (
               <div className="auth-form-group">
                 <div className="track-list-header">

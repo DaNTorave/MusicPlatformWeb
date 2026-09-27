@@ -14,8 +14,10 @@ import GlobalPlayer from './components/GlobalPlayer';
 
 import './styles/App.css';
 
+// Определение текущего маршрута для скрытия глобального плеера на странице плеера
 function AppLayout() {
   const location = useLocation();
+  // Проверка нахождения на странице /player
   const isPlayerPage = location.pathname === '/player';
   return (
     <>
@@ -32,6 +34,7 @@ function AppLayout() {
           <Route path="/player" element={<PlayerPage />} />
         </Routes>
       </main>
+      {/* Глобальный плеер отображается на всех страницах кроме /player */}
       {!isPlayerPage && <GlobalPlayer />}
     </>
   );

@@ -31,12 +31,14 @@ export default function AlbumPage() {
     currentUser &&
     (currentUser.role === 'admin' || currentUser.role === 'moderator');
 
+  // Загрузка данных альбома
   const fetchAlbum = async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await apiClient.request(`/api/artists`);
       if (res?.data) {
+        // Поиск альбома среди всех артистов
         let foundAlbum = null;
         for (const artist of res.data) {
           const artistData = await apiClient.request(
@@ -64,6 +66,7 @@ export default function AlbumPage() {
     fetchAlbum();
   }, [id]);
 
+  // Удаление трека из альбома
   const handleDeleteTrack = async (e, trackId) => {
     if (e) e.stopPropagation();
     if (!window.confirm('Удалить этот трек из альбома?')) return;
@@ -90,6 +93,7 @@ export default function AlbumPage() {
     );
   }
 
+  // Форматирование списка треков с сортировкой по позиции
   const formattedAlbumTracks = [...(album.tracks || [])]
     .sort((a, b) => (a.position || a.id || 0) - (b.position || b.id || 0))
     .map((t) => ({

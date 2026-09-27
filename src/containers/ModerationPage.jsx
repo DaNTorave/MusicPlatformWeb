@@ -8,12 +8,14 @@ import ModerationModal from '../components/ModerationModal';
 import '../styles/Content.css';
 
 export default function ModerationPage() {
+  // Состояния очереди и загрузки
   const [pendingItems, setPendingItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
 
+  // Загрузка очереди модерации
   const loadPending = async () => {
     setLoading(true);
     try {
@@ -35,6 +37,7 @@ export default function ModerationPage() {
     loadPending();
   }, []);
 
+  // Одобрение с возможными правками
   const handleApprove = async (formData) => {
     setActionLoading(true);
     try {
@@ -48,6 +51,7 @@ export default function ModerationPage() {
     }
   };
 
+  // Отклонение заявки
   const handleReject = async (schema, id, comment) => {
     setActionLoading(true);
     try {

@@ -9,6 +9,7 @@ import eye_crossed from '../assets/eye-crossed.svg';
 import '../styles/Register.css';
 
 export default function Register({ onSuccess, onSwitchToLogin }) {
+  // Состояния полей формы
   const [login, setLogin] = useState('');
   const [email, setEmail] = useState('');
   const [nickname, setNickname] = useState('');
@@ -19,6 +20,7 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
   const [fieldError, setFieldError] = useState('');
   const [isRegistrationComplete, setIsRegistrationComplete] = useState(false);
 
+  // Ошибки валидации по полям
   const [errors, setErrors] = useState({
     login: '',
     email: '',
@@ -27,6 +29,7 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
     confirmPassword: '',
   });
 
+  // Мутация регистрации с автоматическим входом
   const { mutate, loading } = useMutation('/api/register', {
     method: 'POST',
     onSuccess: async (data) => {
@@ -57,6 +60,7 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
     onError: (err) => {
       console.error('Ошибка регистрации:', err);
 
+      // Обработка ошибок валидации с сервера
       if (err.status === 400) {
         if (err.data?.errors) {
           const serverErrors = err.data.errors;
@@ -104,6 +108,7 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
     },
   });
 
+  // Валидация отдельного поля
   const validateField = (field, value) => {
     let error = '';
 
@@ -163,6 +168,7 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
     return error;
   };
 
+  // Оценка сложности пароля
   const getPasswordStrength = (pwd) => {
     if (!pwd) return null;
     let score = 0;
@@ -178,6 +184,7 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
     return { label: 'Очень сильный', class: 'very-strong' };
   };
 
+  // Изменение поля с валидацией
   const handleFieldChange = (field, value) => {
     const setters = {
       login: setLogin,
@@ -191,12 +198,14 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
     const error = validateField(field, value);
     setErrors((prev) => ({ ...prev, [field]: error }));
 
+    // Перепроверка подтверждения при изменении пароля
     if (field === 'password' && confirmPassword) {
       const confirmError = validateField('confirmPassword', confirmPassword);
       setErrors((prev) => ({ ...prev, confirmPassword: confirmError }));
     }
   };
 
+  // Отправка формы регистрации
   const handleSubmit = (e) => {
     e.preventDefault();
     setFieldError('');

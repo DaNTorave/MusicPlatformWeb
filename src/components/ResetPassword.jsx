@@ -7,12 +7,15 @@ import eye_crossed from '../assets/eye-crossed.svg';
 import '../styles/Register.css';
 import '../styles/Login.css';
 
+// Компонент сброса пароля с двумя шагами
 export default function ResetPassword({
   onSuccess,
   onSwitchToLogin,
   onShowNotification,
 }) {
+  // Состояние текущего шага
   const [step, setStep] = useState(1);
+  // Состояния полей формы
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [resetToken, setResetToken] = useState('');
@@ -23,6 +26,7 @@ export default function ResetPassword({
   const [fieldError, setFieldError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Ошибки валидации по полям
   const [errors, setErrors] = useState({
     email: '',
     code: '',
@@ -30,6 +34,7 @@ export default function ResetPassword({
     confirmPassword: '',
   });
 
+  // Мутация запроса сброса пароля
   const { mutate: requestReset, loading: loadingRequest } = useMutation(
     '/api/reset-password/request',
     {
@@ -50,6 +55,7 @@ export default function ResetPassword({
     },
   );
 
+  // Мутация подтверждения сброса пароля
   const { mutate: confirmReset, loading: loadingConfirm } = useMutation(
     '/api/reset-password/confirm',
     {
@@ -67,6 +73,7 @@ export default function ResetPassword({
     },
   );
 
+  // Валидация отдельного поля
   const validateField = (field, value) => {
     let error = '';
     switch (field) {
@@ -106,6 +113,7 @@ export default function ResetPassword({
     return error;
   };
 
+  // Оценка сложности пароля
   const getPasswordStrength = (pwd) => {
     if (!pwd) return null;
     let score = 0;
@@ -121,6 +129,7 @@ export default function ResetPassword({
     return { label: 'Очень сильный', class: 'very-strong' };
   };
 
+  // Изменение поля с валидацией
   const handleFieldChange = (field, value) => {
     const setters = {
       email: setEmail,
@@ -134,12 +143,14 @@ export default function ResetPassword({
     const error = validateField(field, value);
     setErrors((prev) => ({ ...prev, [field]: error }));
 
+    // Перепроверка подтверждения при изменении нового пароля
     if (field === 'newPassword' && confirmPassword) {
       const confirmError = validateField('confirmPassword', confirmPassword);
       setErrors((prev) => ({ ...prev, confirmPassword: confirmError }));
     }
   };
 
+  // Отправка первого шага (запрос кода)
   const handleStepOneSubmit = (e) => {
     e.preventDefault();
     setFieldError('');
@@ -151,6 +162,7 @@ export default function ResetPassword({
     requestReset({ email: email.trim() });
   };
 
+  // Отправка второго шага (смена пароля)
   const handleStepTwoSubmit = (e) => {
     e.preventDefault();
     setFieldError('');
@@ -205,6 +217,7 @@ export default function ResetPassword({
         </div>
       )}
 
+      {/* Первый шаг: ввод email */}
       {step === 1 ? (
         <form onSubmit={handleStepOneSubmit} className="auth-form">
           <div className="auth-form-group">
@@ -242,6 +255,7 @@ export default function ResetPassword({
           </Button>
         </form>
       ) : (
+        /* Второй шаг: ввод кода и нового пароля */
         <form onSubmit={handleStepTwoSubmit} className="auth-form">
           <div className="auth-form-group">
             <label htmlFor="reset-code">

@@ -12,6 +12,7 @@ import userIcon from '../assets/user-svgrepo-com.svg';
 import '../styles/Header.css';
 
 export default function Header() {
+  // Состояния модальных окон и пользователя
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -19,6 +20,7 @@ export default function Header() {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
+  // Загрузка пользователя и подписка на события авторизации
   useEffect(() => {
     const currentUser = apiClient.getUser();
     if (currentUser) {
@@ -37,6 +39,7 @@ export default function Header() {
       }
     });
 
+    // Закрытие выпадающего меню при клике вне области
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
@@ -51,6 +54,7 @@ export default function Header() {
     };
   }, []);
 
+  // Обработка успешного входа
   const handleLoginSuccess = () => {
     const currentUser = apiClient.getUser();
     setUser(currentUser);
@@ -58,6 +62,7 @@ export default function Header() {
     setIsDropdownOpen(false);
   };
 
+  // Выход из системы
   const handleLogout = () => {
     apiClient.clearSession();
     setUser(null);
@@ -66,11 +71,13 @@ export default function Header() {
     navigate('/');
   };
 
+  // Переход в профиль
   const handleProfileClick = () => {
     setIsDropdownOpen(false);
     navigate('/profile');
   };
 
+  // Клик по пользователю
   const handleUserClick = () => {
     if (user) {
       setIsDropdownOpen(!isDropdownOpen);
@@ -79,6 +86,7 @@ export default function Header() {
     }
   };
 
+  // Открытие модального окна загрузки
   const handleUploadClick = () => {
     setIsDropdownOpen(false);
     setIsUploadModalOpen(true);
@@ -127,6 +135,7 @@ export default function Header() {
               <span>{user ? displayName : 'Войти'}</span>
             </Button>
 
+            {/* Выпадающее меню пользователя */}
             {user && isDropdownOpen && (
               <div className="user-dropdown">
                 <button

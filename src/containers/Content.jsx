@@ -18,6 +18,7 @@ import playIcon from '../assets/play-icon.svg';
 import '../styles/Content.css';
 
 export default function Content() {
+  // Состояния для модальных окон и данных
   const [isArtistModalOpen, setIsArtistModalOpen] = useState(false);
   const [artists, setArtists] = useState([]);
   const [topTracks, setTopTracks] = useState([]);
@@ -25,6 +26,7 @@ export default function Content() {
   const [editingArtist, setEditingArtist] = useState(null);
   const [chartLimit, setChartLimit] = useState(10);
 
+  // Состояния поиска
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -37,6 +39,7 @@ export default function Content() {
     currentUser &&
     (currentUser.role === 'admin' || currentUser.role === 'moderator');
 
+  // Загрузка артистов и треков чарта
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -57,6 +60,7 @@ export default function Content() {
     fetchData();
   }, []);
 
+  // Закрытие выпадающего списка при клике вне области поиска
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -70,6 +74,7 @@ export default function Content() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Дебаунс поискового запроса
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchQuery);
@@ -77,6 +82,7 @@ export default function Content() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Результаты поиска по артистам и трекам
   const searchResults = useMemo(() => {
     const query = debouncedQuery.trim().toLowerCase();
     if (!query) return { artists: [], tracks: [] };
@@ -105,6 +111,7 @@ export default function Content() {
     return { artists: matchedArtists, tracks: matchedTracks };
   }, [debouncedQuery, artists, topTracks]);
 
+  // Удаление артиста
   const handleDeleteArtist = async (e, artistId) => {
     e.stopPropagation();
     if (!window.confirm('Удалить этого исполнителя?')) return;
@@ -140,6 +147,7 @@ export default function Content() {
       />
 
       <div className="content-page">
+        {/* Панель поиска */}
         <div className="content-search" ref={searchContainerRef}>
           <div className="search-bar-wrapper">
             <InputField
@@ -173,6 +181,7 @@ export default function Content() {
               }
             />
 
+            {/* Выпадающий список результатов поиска */}
             {isDropdownOpen && (
               <div
                 className="search-dropdown-menu"
@@ -185,6 +194,7 @@ export default function Content() {
                   </div>
                 ) : (
                   <>
+                    {/* Результаты по трекам */}
                     {searchResults.tracks.length > 0 && (
                       <div className="search-category-group">
                         <div className="search-category-header">
@@ -255,6 +265,7 @@ export default function Content() {
                       </div>
                     )}
 
+                    {/* Результаты по исполнителям */}
                     {searchResults.artists.length > 0 && (
                       <div className="search-category-group">
                         <div className="search-category-header">
@@ -300,6 +311,7 @@ export default function Content() {
         </div>
 
         <div className="content-container">
+          {/* Панель действий */}
           <div className="content-actions-panel">
             {currentUser && (
               <>
@@ -316,6 +328,7 @@ export default function Content() {
           </div>
 
           <div className="artists-catalog-section">
+            {/* Секция чарта треков */}
             <div>
               <div className="chart-header-row">
                 <h2 className="section-heading section-heading-flush">
@@ -358,6 +371,7 @@ export default function Content() {
               )}
             </div>
 
+            {/* Секция популярных исполнителей */}
             <div>
               <h2 className="section-heading section-heading-spaced">
                 Популярные исполнители

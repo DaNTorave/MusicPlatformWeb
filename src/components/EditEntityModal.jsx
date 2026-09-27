@@ -17,6 +17,7 @@ export default function EditEntityModal({
   type,
   onSuccess,
 }) {
+  // Состояния для полей формы
   const [title, setTitle] = useState('');
   const [genre, setGenre] = useState('');
   const [coverFile, setCoverFile] = useState(null);
@@ -27,6 +28,7 @@ export default function EditEntityModal({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Заполнение полей при открытии и изменении item
   useEffect(() => {
     if (item) {
       setTitle(item.title || item.name || '');
@@ -39,6 +41,7 @@ export default function EditEntityModal({
         Boolean(item.age_restriction || item.has_age_restriction),
       );
 
+      // Для альбома формируется список треков
       if (type === 'album') {
         setTracks(
           (item.tracks || []).map((t) => ({
@@ -56,6 +59,7 @@ export default function EditEntityModal({
 
   if (!isOpen || !item) return null;
 
+  // Обработчик смены обложки
   const handleCoverChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -64,6 +68,7 @@ export default function EditEntityModal({
     }
   };
 
+  // Добавление нового слота трека в альбом
   const handleAddTrackSlot = () => {
     setTracks((prev) => [
       ...prev,
@@ -71,10 +76,12 @@ export default function EditEntityModal({
     ]);
   };
 
+  // Удаление трека из списка
   const handleRemoveTrack = (index) => {
     setTracks((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Изменение поля трека
   const handleTrackChange = (index, field, value) => {
     setTracks((prev) => {
       const copy = [...prev];
@@ -86,6 +93,7 @@ export default function EditEntityModal({
     });
   };
 
+  // Перемещение трека вверх или вниз
   const moveTrack = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= tracks.length) return;
     setTracks((prev) => {
@@ -96,6 +104,7 @@ export default function EditEntityModal({
     });
   };
 
+  // Отправка формы редактирования
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -123,6 +132,7 @@ export default function EditEntityModal({
         );
       }
 
+      // Для альбома добавляются все треки
       if (type === 'album') {
         tracks.forEach((track, idx) => {
           if (track.id) formData.append(`tracks[${idx}][id]`, track.id);
@@ -150,6 +160,7 @@ export default function EditEntityModal({
     }
   };
 
+  // Заголовок модального окна в зависимости от типа
   const getModalTitle = () => {
     switch (type) {
       case 'artist':

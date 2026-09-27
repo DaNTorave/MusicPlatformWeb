@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useMutation } from '../hooks/useApi';
 import { apiClient } from '../api/apiClient';
+
 import InputField from './InputField';
 import Button from './Button';
 
@@ -10,19 +11,23 @@ export default function ChangeNicknameModal({
   currentNickname,
   onNicknameUpdated,
 }) {
+  // Состояние для нового никнейма, ошибок и успеха
   const [nickname, setNickname] = useState(currentNickname || '');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
+  // Мутация для отправки нового никнейма на сервер
   const { mutate, loading } = useMutation('/api/update-nickname', {
     method: 'PUT',
     requireAuth: true,
     onSuccess: (data) => {
+      // Обновление токена и пользователя при успехе
       if (data.token) apiClient.setToken(data.token);
       if (data.user) apiClient.setUser(data.user);
       setSuccessMsg('Никнейм успешно обновлен!');
       setErrorMsg('');
       if (onNicknameUpdated) onNicknameUpdated(data.user);
+      // Закрытие окна через секунду
       setTimeout(() => {
         setSuccessMsg('');
         onClose();
@@ -30,6 +35,7 @@ export default function ChangeNicknameModal({
     },
     onError: (err) => {
       setSuccessMsg('');
+      // Обработка ошибок валидации никнейма
       if (err.data?.errors?.nickname) {
         setErrorMsg(`Никнейм ${err.data.errors.nickname[0]}`);
       } else {
@@ -42,6 +48,7 @@ export default function ChangeNicknameModal({
 
   if (!isOpen) return null;
 
+  // Обработчик отправки формы
   const handleSubmit = (e) => {
     e.preventDefault();
     setErrorMsg('');

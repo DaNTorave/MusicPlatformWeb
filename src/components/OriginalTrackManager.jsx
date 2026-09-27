@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
 import closeIcon from '../assets/close-icon.svg';
 
+// Управление выбором оригинального трека для кавера
 export default function OriginalTrackManager({
   availableTracks = [],
   selectedTrackId,
   onChange,
   disabled = false,
 }) {
+  // Состояния поискового запроса и выпадающего списка
   const [searchQuery, setSearchQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  // Выбранный оригинальный трек
   const selectedTrack = availableTracks.find(
     (t) => String(t.id) === String(selectedTrackId),
   );
 
+  // Фильтрация треков по запросу с исключением каверов
   const filteredSuggestions = availableTracks.filter((track) => {
     if (String(track.id) === String(selectedTrackId)) return false;
     if (track.is_cover || track.original_track_id) return false;
@@ -26,12 +30,14 @@ export default function OriginalTrackManager({
     return titleMatch || artistMatch;
   });
 
+  // Выбор оригинального трека
   const handleSelect = (trackId) => {
     onChange(trackId);
     setSearchQuery('');
     setIsDropdownOpen(false);
   };
 
+  // Сброс выбранного трека
   const handleClear = () => {
     onChange(null);
   };
@@ -45,6 +51,7 @@ export default function OriginalTrackManager({
         </em>
       </p>
 
+      {/* Поиск оригинального трека */}
       {!selectedTrack && !disabled && (
         <div className="collab-search-container">
           <input
@@ -84,6 +91,7 @@ export default function OriginalTrackManager({
         </div>
       )}
 
+      {/* Отображение выбранного оригинального трека */}
       {selectedTrack && (
         <div className="entity-card-row is-cover">
           <div className="entity-card-left">

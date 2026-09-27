@@ -1,32 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation } from '../hooks/useApi';
+
 import InputField from './InputField';
 import Button from './Button';
+
 import eye from '../assets/eye.svg';
 import eye_crossed from '../assets/eye-crossed.svg';
+
 import '../styles/AuthModal.css';
 import '../styles/Register.css';
 import '../styles/Login.css';
 
 export default function ChangePasswordModal({ isOpen, onClose }) {
+  // Состояния для полей пароля
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  // Состояния видимости паролей
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Состояния ошибок и успеха
   const [fieldError, setFieldError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isClosing, setIsClosing] = useState(false);
 
+  // Ошибки валидации по полям
   const [errors, setErrors] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
 
+  // Сброс формы в начальное состояние
   const resetForm = () => {
     setCurrentPassword('');
     setNewPassword('');
@@ -40,6 +48,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     });
   };
 
+  // Закрытие с анимацией и сбросом
   const handleClose = () => {
     setIsClosing(true);
     setTimeout(() => {
@@ -49,6 +58,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     }, 300);
   };
 
+  // Закрытие по Escape
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape' && isOpen) handleClose();
@@ -57,6 +67,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen]);
 
+  // Мутация смены пароля
   const { mutate, loading } = useMutation('/api/change-password', {
     method: 'PUT',
     requireAuth: true,
@@ -73,6 +84,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     },
   });
 
+  // Валидация отдельного поля
   const validateField = (field, value) => {
     let error = '';
     switch (field) {
@@ -103,6 +115,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     return error;
   };
 
+  // Оценка сложности пароля
   const getPasswordStrength = (pwd) => {
     if (!pwd) return null;
     let score = 0;
@@ -118,6 +131,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     return { label: 'Очень сильный', class: 'very-strong' };
   };
 
+  // Изменение поля с валидацией
   const handleFieldChange = (field, value) => {
     const setters = {
       currentPassword: setCurrentPassword,
@@ -130,12 +144,14 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     const error = validateField(field, value);
     setErrors((prev) => ({ ...prev, [field]: error }));
 
+    // Перепроверка подтверждения при изменении нового пароля
     if (field === 'newPassword' && confirmPassword) {
       const confError = validateField('confirmPassword', confirmPassword);
       setErrors((prev) => ({ ...prev, confirmPassword: confError }));
     }
   };
 
+  // Отправка формы
   const handleSubmit = (e) => {
     e.preventDefault();
     setFieldError('');

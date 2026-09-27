@@ -25,10 +25,12 @@ export default function GlobalPlayer() {
     setVolume,
     audioRef,
   } = useAudioPlayer();
+  // Состояния прогресса и длительности трека
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
+  // Подписка на события аудио для обновления прогресса и длительности
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -48,6 +50,7 @@ export default function GlobalPlayer() {
     };
   }, [audioRef, isDragging]);
 
+  // Перемотка трека по клику на прогресс-бар
   const handleSeek = (e) => {
     const audio = audioRef.current;
     if (!audio || !duration) return;
@@ -58,6 +61,7 @@ export default function GlobalPlayer() {
     setProgress(newTime);
   };
 
+  // Форматирование времени в минуты и секунды
   const formatTime = (time) => {
     if (!time || isNaN(time)) return '0:00';
     const minutes = Math.floor(time / 60);
@@ -73,6 +77,7 @@ export default function GlobalPlayer() {
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx !== -1 && currentIdx + 1 < queue.length;
 
+  // Формирование списка всех исполнителей трека
   const allArtists = [];
   if (currentTrack.artist && currentTrack.artist.name) {
     allArtists.push(currentTrack.artist);
@@ -124,6 +129,7 @@ export default function GlobalPlayer() {
 
             {currentTrack.age_restriction && <AgeBadge size="small" />}
 
+            {/* Бейдж кавера с возможностью переключения на оригинал */}
             {isCover && (
               <span
                 className={`player-cover-badge ${originalTrack ? 'clickable' : ''}`}

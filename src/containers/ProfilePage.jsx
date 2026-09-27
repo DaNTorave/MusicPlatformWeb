@@ -12,6 +12,7 @@ import '../styles/ProfilePage.css';
 export default function ProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  // Состояния профиля и модальных окон
   const [user, setUser] = useState(null);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -19,6 +20,7 @@ export default function ProfilePage() {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
 
+  // Загрузка профиля
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
@@ -29,6 +31,7 @@ export default function ProfilePage() {
         let targetId;
         let isOwn = false;
 
+        // Определение просматриваемого профиля
         if (id) {
           targetId = parseInt(id);
           if (currentUser && targetId === currentUser.id) isOwn = true;
@@ -86,6 +89,7 @@ export default function ProfilePage() {
     fetchProfile();
   }, [id, navigate]);
 
+  // Загрузка аватара
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
