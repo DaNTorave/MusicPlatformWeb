@@ -127,6 +127,10 @@
   color: #14161a;
 }
 
+.artist-meta-string {
+  padding-left: 0;
+}
+
 .track-page-artist-link,
 .track-page-album-link {
   color: #1773cf;

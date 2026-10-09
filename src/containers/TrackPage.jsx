@@ -176,14 +176,17 @@ export default function TrackPage() {
           )}
 
           <div className="track-page-stats">
-            {track.release_year && (
-              <>
-                Год: <strong>{track.release_year}</strong> •{' '}
-              </>
-            )}
-            Длительность:{' '}
-            <strong>{formatDuration(track.duration_seconds)}</strong> •
-            Прослушиваний: <strong>{track.plays_count || 0}</strong>
+            <div className="artist-meta">
+              {track.release_year && (
+                <p className="artist-meta-string">Год: {track.release_year}</p>
+              )}
+              <p className="artist-meta-string">
+                Длительность: {formatDuration(track.duration_seconds)}
+              </p>
+              <p className="artist-meta-string">
+                Прослушиваний: {track.plays_count || 0}
+              </p>
+            </div>
           </div>
 
           <div className="track-page-actions">

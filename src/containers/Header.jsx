@@ -1,13 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/apiClient';
 
 import Button from '../components/Button';
 import AuthModal from './AuthModal';
 import UploadMusicModal from '../components/UploadMusicModal';
+import NotificationsModal from '../components/NotificationsModal';
 
 import logo from '../assets/logo.png';
 import userIcon from '../assets/user-svgrepo-com.svg';
+import bellIcon from '../assets/bell-icon.svg';
 
 import '../styles/Header.css';
 
@@ -15,27 +17,58 @@ export default function Header() {
   // Состояния модальных окон и пользователя
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  // Загрузка пользователя и подписка на события авторизации
+  // Загрузка количества непрочитанных уведомлений
+  const loadUnreadCount = async () => {
+    try {
+      const res = await apiClient.request('/api/notifications', {
+        method: 'GET',
+        requireAuth: true,
+      });
+      if (res?.notifications) {
+        const count = res.notifications.filter((n) => !n.is_read).length;
+        setUnreadCount(count);
+      }
+    } catch (e) {
+      setUnreadCount(0);
+    }
+  };
+
+  // Загрузка пользователя и подписка на события авторизации и уведомлений
   useEffect(() => {
     const currentUser = apiClient.getUser();
     if (currentUser) {
       setUser(currentUser);
+      loadUnreadCount();
     }
 
     const handleAuthChange = () => {
       const updatedUser = apiClient.getUser();
       setUser(updatedUser);
+      if (updatedUser) loadUnreadCount();
+      else setUnreadCount(0);
+    };
+
+    const handleNotificationsChange = () => {
+      loadUnreadCount();
     };
 
     window.addEventListener('auth:unauthorized', handleAuthChange);
+    window.addEventListener('auth:login', handleAuthChange);
+    window.addEventListener('notifications:update', handleNotificationsChange);
     window.addEventListener('storage', (e) => {
       if (e.key === 'user' || e.key === 'authToken') {
         handleAuthChange();
+      }
+      if (e.key === 'user_notifications') {
+        handleNotificationsChange();
       }
     });
 
@@ -50,6 +83,8 @@ export default function Header() {
 
     return () => {
       window.removeEventListener('auth:unauthorized', handleAuthChange);
+      window.removeEventListener('auth:login', handleAuthChange);
+      window.removeEventListener('notifications:update', handleNotificationsChange);
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
@@ -60,12 +95,14 @@ export default function Header() {
     setUser(currentUser);
     setIsAuthModalOpen(false);
     setIsDropdownOpen(false);
+    loadUnreadCount();
   };
 
   // Выход из системы
   const handleLogout = () => {
     apiClient.clearSession();
     setUser(null);
+    setUnreadCount(0);
     setIsDropdownOpen(false);
     window.dispatchEvent(new CustomEvent('auth:unauthorized'));
     navigate('/');
@@ -86,16 +123,17 @@ export default function Header() {
     }
   };
 
-  // Открытие модального окна загрузки
-  const handleUploadClick = () => {
+  // Открытие модального окна уведомлений
+  const handleNotificationsClick = () => {
     setIsDropdownOpen(false);
-    setIsUploadModalOpen(true);
+    setIsNotificationsModalOpen(true);
   };
 
   const displayName = user ? user.nickname || user.login : null;
 
   return (
     <>
+      {/* Модальное окно авторизации */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
@@ -103,10 +141,23 @@ export default function Header() {
         initialTab="login"
       />
 
+      {/* Модальное окно загрузки музыки */}
       <UploadMusicModal
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
-        onSuccess={() => console.log('Контент загружен!')}
+        onSuccess={() => {
+          loadUnreadCount();
+        }}
+      />
+
+      {/* Модальное окно уведомлений */}
+      <NotificationsModal
+        isOpen={isNotificationsModalOpen}
+        onClose={() => setIsNotificationsModalOpen(false)}
+        onOpenUpload={() => {
+          setIsNotificationsModalOpen(false);
+          setIsUploadModalOpen(true);
+        }}
       />
 
       <header className="header">
@@ -143,7 +194,7 @@ export default function Header() {
                   className="dropdown-item"
                   onClick={handleProfileClick}
                 >
-                  Профиль
+                  <span>Профиль</span>
                 </button>
 
                 {user &&
@@ -156,9 +207,22 @@ export default function Header() {
                         navigate('/moderation');
                       }}
                     >
-                      Модерация
+                      <span>Модерация</span>
                     </button>
                   )}
+
+                  <button
+                    type="button"
+                    className="dropdown-item"
+                    onClick={handleNotificationsClick}
+                  >
+                    <span>Уведомления</span>
+                    {unreadCount > 0 && (
+                      <span className="dropdown-badge-counter">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
 
                 <div className="dropdown-divider"></div>
 
@@ -167,7 +231,7 @@ export default function Header() {
                   className="dropdown-item logout"
                   onClick={handleLogout}
                 >
-                  Выйти
+                  <span>Выйти</span>
                 </button>
               </div>
             )}

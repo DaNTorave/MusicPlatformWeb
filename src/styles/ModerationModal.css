@@ -143,3 +143,10 @@
 .moderation-modal {
   max-width: 680px;
 }
+
+.reject-preset-chip {
+  border: none;
+  padding: 2px 8px;
+  margin: 3px;
+  border-radius: 12px;
+}

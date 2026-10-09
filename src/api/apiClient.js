@@ -30,6 +30,7 @@ export const apiClient = {
       localStorage.removeItem('authToken');
     }
   },
+
   // Получение токена из localStorage
   getToken() {
     return localStorage.getItem('authToken');
@@ -45,6 +46,7 @@ export const apiClient = {
       localStorage.removeItem('user');
     }
   },
+
   // Получение данных пользователя
   getUser() {
     const user = localStorage.getItem('user');
@@ -128,10 +130,10 @@ export const apiClient = {
       data: credentials,
     });
 
-    if (response.token) {
+    if (response?.token) {
       this.setToken(response.token);
     }
-    if (response.user) {
+    if (response?.user) {
       this.setUser(response.user);
     }
 
@@ -153,10 +155,10 @@ export const apiClient = {
       },
     });
 
-    if (loginResponse.token) {
+    if (loginResponse?.token) {
       this.setToken(loginResponse.token);
     }
-    if (loginResponse.user) {
+    if (loginResponse?.user) {
       this.setUser(loginResponse.user);
     }
 
@@ -207,5 +209,21 @@ export const apiClient = {
       }
       throw err;
     }
+  },
+
+  // Получение уведомлений текущего пользователя
+  async getNotifications() {
+    return await this.request('/api/notifications', {
+      method: 'GET',
+      requireAuth: true,
+    });
+  },
+
+  // Отметка уведомления как прочитанного
+  async markNotificationRead(id) {
+    return await this.request(`/api/notifications/${id}/read`, {
+      method: 'PUT',
+      requireAuth: true,
+    });
   },
 };

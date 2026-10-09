@@ -1,0 +1,475 @@
+.notifications-modal-window {
+  max-width: 620px;
+  width: 95vw;
+}
+
+.notifications-header-tabs {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0ecec;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.modal-window-top-button.active::after {
+    width: calc(50% - 140px);
+}
+
+.notifications-filter-group {
+  display: flex;
+  gap: 6px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.notifications-filter-btn {
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notifications-filter-btn:hover {
+  color: #0f172a;
+}
+
+.notifications-filter-btn.active {
+  background: #ffffff;
+  color: #1773cf;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.notifications-filter-badge {
+  background: #e74c3c;
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 800;
+}
+
+.notifications-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notifications-mark-all-btn {
+  background: none;
+  border: none;
+  color: #1773cf;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.notifications-mark-all-btn:hover {
+  background: #e0f2fe;
+}
+
+/* Список уведомлений */
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 4px;
+  overscroll-behavior: contain;
+}
+
+.notifications-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  gap: 12px;
+  color: #94a3b8;
+}
+
+.notifications-empty-icon {
+  width: 48px;
+  height: 48px;
+  opacity: 0.4;
+  color: #94a3b8;
+}
+
+.notifications-empty-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #334155;
+  margin: 0;
+}
+
+.notifications-empty-desc {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Карточка отдельного уведомления */
+.notification-card-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+}
+
+.notification-card-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
+}
+
+.notification-card-item.unread {
+  background: #f8fafc;
+  border-left: 4px solid #1773cf;
+}
+
+.notification-card-item.type-approved.unread {
+  background: #f0fdf4;
+  border-left: 4px solid #16a34a;
+}
+
+.notification-card-item.type-rejected.unread {
+  background: #fff5f5;
+  border-left: 4px solid #dc2626;
+}
+
+/* Иконка типа */
+.notification-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.notification-icon-wrapper.approved {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.notification-icon-wrapper.rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.notification-icon-wrapper.info {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.notification-icon-wrapper svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Тело уведомления */
+.notification-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notification-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.notification-badge-type {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.4px;
+}
+
+.notification-badge-type.approved {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.notification-badge-type.rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.notification-badge-type.info {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.notification-date {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.notification-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.notification-message-snippet {
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.4;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Причина отклонения в карточке */
+.notification-reason-preview {
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #991b1b;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.notification-reason-preview strong {
+  color: #7f1d1d;
+  flex-shrink: 0;
+}
+
+/* Маркер непрочитанного */
+.notification-unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1773cf;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.notification-card-item.type-approved .notification-unread-dot {
+  background: #16a34a;
+}
+
+.notification-card-item.type-rejected .notification-unread-dot {
+  background: #dc2626;
+}
+
+/* Детальная модалка просмотра уведомления */
+.notification-detail-window {
+  max-width: 540px;
+}
+
+.notification-detail-header-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+}
+
+.notification-detail-header-status.approved {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.notification-detail-header-status.rejected {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.notification-detail-header-status.info {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #075985;
+}
+
+.notification-detail-status-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notification-detail-header-status.approved .notification-detail-status-icon {
+  background: #22c55e;
+  color: #ffffff;
+}
+
+.notification-detail-header-status.rejected .notification-detail-status-icon {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.notification-detail-header-status.info .notification-detail-status-icon {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.notification-detail-status-text h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.notification-detail-status-text p {
+  font-size: 0.82rem;
+  margin: 2px 0 0 0;
+  opacity: 0.85;
+}
+
+.notification-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notification-detail-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.notification-detail-message-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #334155;
+}
+
+/* Блок причины отклонения */
+.notification-rejection-callout {
+  background: #fff5f5;
+  border: 1px solid #fca5a5;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notification-rejection-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #991b1b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.notification-rejection-reason-text {
+  font-size: 0.95rem;
+  color: #7f1d1d;
+  line-height: 1.5;
+  background: #ffffff;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  font-weight: 600;
+}
+
+.notification-rejection-tips {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin: 4px 0 0 0;
+  line-height: 1.4;
+}
+
+/* Блок одобрения с информацией о релизе */
+.notification-approval-callout {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notification-approval-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #166534;
+  text-transform: uppercase;
+}
+
+.notification-approval-desc {
+  font-size: 0.92rem;
+  color: #14532d;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.notification-detail-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.notification-detail-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
