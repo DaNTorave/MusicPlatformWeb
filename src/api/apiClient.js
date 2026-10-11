@@ -226,4 +226,30 @@ export const apiClient = {
       requireAuth: true,
     });
   },
+
+  // Получение избранных треков (приватно)
+  async getFavorites(limit = null) {
+    const query = limit ? `?limit=${limit}` : '';
+    return await this.request(`/api/favorites${query}`, {
+      method: 'GET',
+      requireAuth: true,
+    });
+  },
+
+  // Получение айди всех избранных треков
+  async getFavoriteIds() {
+    return await this.request('/api/favorites/ids', {
+      method: 'GET',
+      requireAuth: true,
+    });
+  },
+
+  // Добавить/удалить из избранного
+  async toggleFavorite(trackId) {
+    return await this.request('/api/favorites/toggle', {
+      method: 'POST',
+      requireAuth: true,
+      data: { track_id: trackId },
+    });
+  },
 };

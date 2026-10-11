@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/apiClient';
+import { useAudioPlayer } from '../context/AudioContext';
 
 import ChangePasswordModal from '../components/ChangePasswordModal';
 import ChangeNicknameModal from '../components/ChangeNicknameModal';
+import TrackRow from '../components/TrackRow';
 
 import defaultAvatar from '../assets/Шотландская веслоухая.jpg';
 
@@ -12,7 +14,8 @@ import '../styles/ProfilePage.css';
 export default function ProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  // Состояния профиля и модальных окон
+
+  // Состояния профиля пользователя и модальных окон
   const [user, setUser] = useState(null);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -20,7 +23,14 @@ export default function ProfilePage() {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
 
-  // Загрузка профиля
+  // Состояния избранных композиций
+  const [favoriteTracks, setFavoriteTracks] = useState([]);
+  const [favLoading, setFavLoading] = useState(false);
+
+  // Управление глобальным аудиопотоком
+  const { playTrack, currentTrack, isPlaying } = useAudioPlayer();
+
+  // Загрузка данных учетной записи
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
@@ -31,7 +41,7 @@ export default function ProfilePage() {
         let targetId;
         let isOwn = false;
 
-        // Определение просматриваемого профиля
+        // Определение принадлежности страницы текущему пользователю
         if (id) {
           targetId = parseInt(id);
           if (currentUser && targetId === currentUser.id) isOwn = true;
@@ -89,7 +99,39 @@ export default function ProfilePage() {
     fetchProfile();
   }, [id, navigate]);
 
-  // Загрузка аватара
+  // Запрос 12 последних добавленных треков из избранного
+  const loadFavorites = async () => {
+    if (!isOwnProfile) return;
+    setFavLoading(true);
+    try {
+      const res = await apiClient.getFavorites(12);
+      if (res?.data) {
+        setFavoriteTracks(res.data);
+      }
+    } catch (e) {
+      console.warn('Ошибка загрузки избранного:', e);
+    } finally {
+      setFavLoading(false);
+    }
+  };
+
+  // Инициализация загрузки избранного для владельца профиля
+  useEffect(() => {
+    if (isOwnProfile) {
+      loadFavorites();
+    }
+  }, [isOwnProfile]);
+
+  // Обновление списка при наступлении событий изменения избранного
+  useEffect(() => {
+    const handleFavUpdate = () => {
+      if (isOwnProfile) loadFavorites();
+    };
+    window.addEventListener('favorites:updated', handleFavUpdate);
+    return () => window.removeEventListener('favorites:updated', handleFavUpdate);
+  }, [isOwnProfile]);
+
+  // Отправка нового изображения аватара
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -136,6 +178,7 @@ export default function ProfilePage() {
         }}
       />
 
+        {/* Сделать левый и правый */}
       <div className="profile-container">
         <div className="profile-info">
           <div className="profile-header">
@@ -220,6 +263,48 @@ export default function ProfilePage() {
               </>
             )}
           </div>
+
+          {/* Приватный блок избранного для владельца профиля */}
+          {isOwnProfile && (
+            <div className="profile-favorites-section">
+              <div className="profile-favorites-header">
+                <div>
+                  <h2>Мое избранное</h2>
+                  <span className="profile-favorites-subtitle">
+                    Последние 12 добавленных композиций
+                  </span>
+                </div>
+                {favoriteTracks.length > 0 && (
+                  <button
+                    type="button"
+                    className="profile-show-all-btn"
+                    onClick={() => navigate('/favorites')}
+                  >
+                    Показать все
+                  </button>
+                )}
+              </div>
+
+              {favLoading ? (
+                <p className="empty-text">Загрузка избранного...</p>
+              ) : favoriteTracks.length === 0 ? (
+                <p className="empty-text">Список избранных треков пуст.</p>
+              ) : (
+                <div className="album-tracks-container scrollable-chart-list">
+                  {favoriteTracks.map((track, idx) => (
+                    <TrackRow
+                      key={track.id}
+                      index={idx}
+                      track={track}
+                      isFavorite={true}
+                      isPlaying={currentTrack?.id === track.id && isPlaying}
+                      onPlay={() => playTrack(track, favoriteTracks)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

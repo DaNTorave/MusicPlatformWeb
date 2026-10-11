@@ -11,8 +11,10 @@ import ModerationPage from './containers/ModerationPage';
 import TrackPage from './containers/TrackPage';
 import PlayerPage from './containers/PlayerPage';
 import GlobalPlayer from './components/GlobalPlayer';
+import FavoritesPage from './containers/FavoritesPage';
 
 import './styles/App.css';
+import { FavoritesProvider } from './context/FavoritesContext';
 
 // Определение текущего маршрута для скрытия глобального плеера на странице плеера
 function AppLayout() {
@@ -32,6 +34,7 @@ function AppLayout() {
           <Route path="/profile/:id" element={<ProfilePage />} />
           <Route path="/moderation" element={<ModerationPage />} />
           <Route path="/player" element={<PlayerPage />} />
+          <Route path="/favorites" element={<FavoritesPage />} />
         </Routes>
       </main>
       {/* Глобальный плеер отображается на всех страницах кроме /player */}
@@ -42,11 +45,13 @@ function AppLayout() {
 
 function App() {
   return (
-    <AudioProvider>
-      <HashRouter>
-        <AppLayout />
-      </HashRouter>
-    </AudioProvider>
+    <FavoritesProvider>
+      <AudioProvider>
+        <HashRouter>
+          <AppLayout />
+        </HashRouter>
+      </AudioProvider>
+    </FavoritesProvider>
   );
 }
 

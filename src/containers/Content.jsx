@@ -322,6 +322,10 @@ export default function Content() {
                   Добавить исполнителя
                 </Button>
                 <Button variant="secondary">Алгоритмы</Button>
+                <Button variant="secondary" onClick={() => navigate('/favorites')}>
+                  Избранное
+                </Button>
+                <Button variant="secondary">Плейлисты</Button>
                 <div className="content-actions-panel-block" />
               </>
             )}

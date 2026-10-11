@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useFavorites } from '../context/FavoritesContext';
 
 import AgeBadge from './AgeBadge';
 
@@ -24,14 +25,23 @@ export default function TrackRow({
   canDelete = false,
   showAlbumPosition = false,
   showCoverImg = true,
+  isFavorite: explicitIsFavorite,
+  onToggleFavorite,
 }) {
-  // Состояние избранного и длительности трека
-  const [isFavorite, setIsFavorite] = useState(false);
+  // Получение функций проверки и изменения статуса избранного из контекста
+  const { isFavorite: checkFavorite, toggleFavorite: ctxToggleFavorite } = useFavorites();
+
+  // Вычисление итогового состояния избранного
+  const isFavorite =
+    explicitIsFavorite !== undefined
+      ? explicitIsFavorite
+      : checkFavorite(track?.id);
+
   const [duration, setDuration] = useState(
     () => track.duration_seconds || track.duration || 0,
   );
 
-  // Загрузка длительности из аудио, если она не указана
+  // Определение длительности через загрузку метаданных при ее отсутствии
   useEffect(() => {
     const directDur = track.duration_seconds || track.duration;
     if (directDur && directDur > 0) {
@@ -67,7 +77,17 @@ export default function TrackRow({
     }
   }, [track.id, track.duration_seconds, track.duration]);
 
-  // Форматирование длительности в минуты и секунды
+  // Обработка нажатия на кнопку добавления в избранное
+  const handleFavoriteClick = (e) => {
+    e.stopPropagation();
+    if (onToggleFavorite) {
+      onToggleFavorite(track.id);
+    } else {
+      ctxToggleFavorite(track.id);
+    }
+  };
+
+  // Форматирование секунд в формат ММ:СС
   const formatDuration = (seconds) => {
     if (!seconds || isNaN(seconds) || seconds <= 0) return '--:--';
     const mins = Math.floor(seconds / 60);
@@ -75,7 +95,7 @@ export default function TrackRow({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Формирование списка исполнителей
+  // Построение списка исполнителей
   const artistsList = [];
   if (track.artist && track.artist.name) {
     artistsList.push(track.artist);
@@ -98,7 +118,7 @@ export default function TrackRow({
     Boolean(track.original_track_id) ||
     Boolean(originalTrack);
 
-  // Переключение на оригинальный трек при клике на бейдж кавера
+  // Переключение на воспроизведение оригинальной композиции
   const handleCoverClick = (e) => {
     e.stopPropagation();
     if (originalTrack && onPlay) {
@@ -110,7 +130,7 @@ export default function TrackRow({
     }
   };
 
-  // Скачивание трека
+  // Скачивание файла композиции
   const handleDownload = (e) => {
     e.stopPropagation();
     if (!track.id) return;
@@ -131,6 +151,7 @@ export default function TrackRow({
       onClick={() => onPlay && onPlay(track)}
     >
       <span className="track-row-num">{displayNum}</span>
+
       {showCoverImg ? (
         <div className="track-row-cover-wrapper">
           <img
@@ -139,7 +160,6 @@ export default function TrackRow({
             className="track-row-cover"
           />
 
-          {/* Кнопка воспроизведения поверх обложки */}
           <button
             type="button"
             className={`track-cover-play-btn ${isPlaying ? 'visible' : ''}`}
@@ -173,6 +193,7 @@ export default function TrackRow({
           />
         </button>
       )}
+
       <div className="track-row-main">
         <div className="track-row-title-container">
           <Link
@@ -184,14 +205,13 @@ export default function TrackRow({
             {track.title}
           </Link>
           {track.age_restriction && <AgeBadge size="small" />}
-          {/* Бейдж кавера */}
           {isCover && (
             <span
               className={`track-cover-badge ${originalTrack ? 'clickable' : ''}`}
               onClick={handleCoverClick}
               title={
                 originalTrack
-                  ? `Оригинал: ${originalTrack.title} (${originalTrack.artist?.name || 'Артист'}) — Нажмите для воспроизведения`
+                  ? `Оригинал: ${originalTrack.title} (${originalTrack.artist?.name || 'Артист'})`
                   : 'Кавер-версия'
               }
             >
@@ -233,15 +253,11 @@ export default function TrackRow({
       <div className="track-row-duration">{formatDuration(duration)}</div>
 
       <div className="track-row-actions" onClick={(e) => e.stopPropagation()}>
-        {/* Кнопка избранного */}
         <button
           type="button"
           className={`track-action-btn ${isFavorite ? 'active-fav' : ''}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsFavorite(!isFavorite);
-          }}
-          title="Добавить в избранное"
+          onClick={handleFavoriteClick}
+          title={isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}
         >
           <img
             src={favoriteIcon}
@@ -250,7 +266,6 @@ export default function TrackRow({
           />
         </button>
 
-        {/* Кнопка скачивания */}
         <button
           type="button"
           className="track-action-btn download-btn"
@@ -260,7 +275,6 @@ export default function TrackRow({
           <img src={downloadIcon} alt="Скачать" className="action-icon" />
         </button>
 
-        {/* Кнопка редактирования */}
         {canEdit && (
           <button
             type="button"
@@ -275,7 +289,6 @@ export default function TrackRow({
           </button>
         )}
 
-        {/* Кнопка удаления */}
         {canDelete && (
           <button
             type="button"

@@ -136,3 +136,43 @@
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(20, 22, 26, 0.15);
 }
+
+.profile-favorites-section {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid #f0ecec;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.profile-favorites-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profile-favorites-subtitle {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.profile-show-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 10px;
+  background: #eef6fc;
+  color: #1773cf;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.profile-show-all-btn:hover {
+  background: #e0f2fe;
+  transform: translateX(3px);
+}
