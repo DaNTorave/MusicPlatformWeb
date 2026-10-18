@@ -1,0 +1,348 @@
+.playlists-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f0ecec;
+  padding-bottom: 2rem;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.playlists-header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.favorites-special-card {
+  background: linear-gradient(145deg, #fff5f5 0%, #fee2e2 100%);
+  border-color: #fecaca;
+}
+
+.favorites-special-card:hover {
+  background: linear-gradient(145deg, #fee2e2 0%, #fecaca 100%);
+  border-color: #fca5a5;
+}
+
+.favorites-cover-box {
+  background: #fef2f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.favorites-card-heart-icon {
+  width: 64px;
+  height: 64px;
+  transition: transform 0.3s ease;
+}
+
+.favorites-special-card:hover .favorites-card-heart-icon {
+  transform: scale(1.1);
+}
+
+.playlist-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.playlist-privacy-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-top: 3px;
+  width: fit-content;
+}
+
+.playlist-privacy-badge.public {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.playlist-privacy-badge.private {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.playlist-header-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.playlist-header-badges .artist-tag,
+.playlist-header-badges .playlist-privacy-badge {
+  margin: 0;
+}
+
+.playlist-page-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.playlist-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #1e293b;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.playlist-share-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.playlist-share-btn img {
+  width: 18px;
+  height: 18px;
+}
+
+.playlist-privacy-box {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.playlist-privacy-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.playlist-privacy-label input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.playlist-privacy-pill {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.playlist-privacy-pill.is-on {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.playlist-privacy-pill.is-off {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.playlist-privacy-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.playlist-privacy-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.playlist-privacy-hint {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.add-to-playlist-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.add-to-playlist-track-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.add-to-playlist-track-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.add-to-playlist-track-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.add-to-playlist-track-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #14161a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.add-to-playlist-track-artist {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.add-to-playlist-top-bar {
+  display: flex;
+  gap: 8px;
+}
+
+.add-to-playlist-search {
+  flex: 1 1 auto;
+}
+
+.add-to-playlist-new-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid #1773cf;
+  background: #eef6fc;
+  color: #1773cf;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.add-to-playlist-new-btn:hover {
+  background: #dbeafe;
+}
+
+.add-to-playlist-new-btn img {
+  width: 16px;
+  height: 16px;
+}
+
+.add-to-playlist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.add-to-playlist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.add-to-playlist-item:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.add-to-playlist-item.is-added {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.add-to-playlist-item-cover {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.add-to-playlist-item-info {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.add-to-playlist-item-title {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.add-to-playlist-item-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.add-to-playlist-status-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.add-to-playlist-status-btn.added {
+  border-color: #22c55e;
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.add-to-playlist-status-btn img {
+  width: 14px;
+  height: 14px;
+}
+
+.add-to-playlist-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 12px;
+  color: #64748b;
+  text-align: center;
+}

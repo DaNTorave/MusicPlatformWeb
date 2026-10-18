@@ -14,6 +14,7 @@ import defaultAvatar from '../assets/Шотландская веслоухая.j
 import edit_icon from '../assets/edit-icon.svg';
 import close_icon from '../assets/close-icon.svg';
 import playIcon from '../assets/play-icon.svg';
+import searchIcon from '../assets/search-icon.svg';
 
 import '../styles/Content.css';
 
@@ -74,7 +75,7 @@ export default function Content() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Дебаунс поискового запроса
+  // Задержка поискового запроса
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchQuery);
@@ -164,21 +165,7 @@ export default function Content() {
                 setSearchQuery('');
                 setDebouncedQuery('');
               }}
-              leftIcon={
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-              }
+              leftIcon={<img src={searchIcon} alt="Поиск" />}
             />
 
             {/* Выпадающий список результатов поиска */}
@@ -189,8 +176,7 @@ export default function Content() {
               >
                 {!hasResults ? (
                   <div className="search-dropdown-empty">
-                    Ничего не найдено по запросу «
-                    <strong>{debouncedQuery}</strong>»
+                    Ничего не найдено по запросу: <strong>{debouncedQuery}</strong>
                   </div>
                 ) : (
                   <>
@@ -322,10 +308,18 @@ export default function Content() {
                   Добавить исполнителя
                 </Button>
                 <Button variant="secondary">Алгоритмы</Button>
-                <Button variant="secondary" onClick={() => navigate('/favorites')}>
+                <Button
+                  variant="secondary"
+                  onClick={() => navigate('/favorites')}
+                >
                   Избранное
                 </Button>
-                <Button variant="secondary">Плейлисты</Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => navigate('/playlists')}
+                >
+                  Плейлисты
+                </Button>
                 <div className="content-actions-panel-block" />
               </>
             )}

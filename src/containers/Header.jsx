@@ -9,15 +9,12 @@ import NotificationsModal from '../components/NotificationsModal';
 
 import logo from '../assets/logo.png';
 import userIcon from '../assets/user-svgrepo-com.svg';
-import bellIcon from '../assets/bell-icon.svg';
 
 import '../styles/Header.css';
 
 export default function Header() {
-  // Состояния модальных окон и пользователя
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
+  // Единое состояние для активного модального окна в шапке ('auth' | 'upload' | 'notifications' | null)
+  const [activeModal, setActiveModal] = useState(null);
   const [user, setUser] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -84,7 +81,10 @@ export default function Header() {
     return () => {
       window.removeEventListener('auth:unauthorized', handleAuthChange);
       window.removeEventListener('auth:login', handleAuthChange);
-      window.removeEventListener('notifications:update', handleNotificationsChange);
+      window.removeEventListener(
+        'notifications:update',
+        handleNotificationsChange,
+      );
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
@@ -93,7 +93,7 @@ export default function Header() {
   const handleLoginSuccess = () => {
     const currentUser = apiClient.getUser();
     setUser(currentUser);
-    setIsAuthModalOpen(false);
+    setActiveModal(null);
     setIsDropdownOpen(false);
     loadUnreadCount();
   };
@@ -119,14 +119,14 @@ export default function Header() {
     if (user) {
       setIsDropdownOpen(!isDropdownOpen);
     } else {
-      setIsAuthModalOpen(true);
+      setActiveModal('auth');
     }
   };
 
   // Открытие модального окна уведомлений
   const handleNotificationsClick = () => {
     setIsDropdownOpen(false);
-    setIsNotificationsModalOpen(true);
+    setActiveModal('notifications');
   };
 
   const displayName = user ? user.nickname || user.login : null;
@@ -135,16 +135,16 @@ export default function Header() {
     <>
       {/* Модальное окно авторизации */}
       <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
+        isOpen={activeModal === 'auth'}
+        onClose={() => setActiveModal(null)}
         onLoginSuccess={handleLoginSuccess}
         initialTab="login"
       />
 
       {/* Модальное окно загрузки музыки */}
       <UploadMusicModal
-        isOpen={isUploadModalOpen}
-        onClose={() => setIsUploadModalOpen(false)}
+        isOpen={activeModal === 'upload'}
+        onClose={() => setActiveModal(null)}
         onSuccess={() => {
           loadUnreadCount();
         }}
@@ -152,11 +152,10 @@ export default function Header() {
 
       {/* Модальное окно уведомлений */}
       <NotificationsModal
-        isOpen={isNotificationsModalOpen}
-        onClose={() => setIsNotificationsModalOpen(false)}
+        isOpen={activeModal === 'notifications'}
+        onClose={() => setActiveModal(null)}
         onOpenUpload={() => {
-          setIsNotificationsModalOpen(false);
-          setIsUploadModalOpen(true);
+          setActiveModal('upload');
         }}
       />
 
@@ -211,18 +210,18 @@ export default function Header() {
                     </button>
                   )}
 
-                  <button
-                    type="button"
-                    className="dropdown-item"
-                    onClick={handleNotificationsClick}
-                  >
-                    <span>Уведомления</span>
-                    {unreadCount > 0 && (
-                      <span className="dropdown-badge-counter">
-                        {unreadCount}
-                      </span>
-                    )}
-                  </button>
+                <button
+                  type="button"
+                  className="dropdown-item"
+                  onClick={handleNotificationsClick}
+                >
+                  <span>Уведомления</span>
+                  {unreadCount > 0 && (
+                    <span className="dropdown-badge-counter">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
 
                 <div className="dropdown-divider"></div>
 

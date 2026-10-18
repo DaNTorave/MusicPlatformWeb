@@ -268,7 +268,7 @@ export default function ArtistPage() {
                 fullWidth={false}
                 onClick={() => setIsUploadModalOpen(true)}
               >
-                + Добавить музыку
+                Добавить музыку
               </Button>
             )}
             {isStaff && (

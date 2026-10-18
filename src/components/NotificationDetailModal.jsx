@@ -142,11 +142,8 @@ export function NotificationDetailContent({
             Причина отклонения заявки:
           </div>
           <div className="notification-rejection-reason-text">
-            «{extractRejectReason()}»
+            {extractRejectReason()}
           </div>
-          <p className="notification-rejection-tips">
-            <strong>Как исправить:</strong> устраните указанные модератором замечания (замените аудиофайл на более качественный, укажите оригинального автора при кавере или загрузите корректную обложку) и отправьте заявку заново.
-          </p>
         </div>
       )}
 

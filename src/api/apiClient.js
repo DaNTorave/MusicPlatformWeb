@@ -40,7 +40,6 @@ export const apiClient = {
   setUser(user) {
     if (user) {
       localStorage.setItem('user', JSON.stringify(user));
-      // Оповещение всех компонентов об успешном входе
       window.dispatchEvent(new CustomEvent('auth:login'));
     } else {
       localStorage.removeItem('user');
@@ -57,13 +56,13 @@ export const apiClient = {
     }
   },
 
-  // Очистка сессии (выход)
+  // Очистка сессии
   clearSession() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
   },
 
-  // Основной метод для выполнения запросов к API
+  // Основной метод выполнения запросов к API
   async request(url, options = {}) {
     const {
       method = 'GET',
@@ -90,7 +89,6 @@ export const apiClient = {
       console.log(`[API] Ответ от сервера:`, parsedData);
 
       if (!response.ok) {
-        // При 401 ошибке очистка сессии и оповещение приложения
         if (response.status === 401) {
           this.clearSession();
           window.dispatchEvent(new CustomEvent('auth:unauthorized'));
@@ -168,7 +166,7 @@ export const apiClient = {
     };
   },
 
-  // Загрузка файлов (FormData)
+  // Загрузка файлов через FormData
   async upload(url, formData) {
     const token = this.getToken();
     const headers = {};
@@ -227,7 +225,7 @@ export const apiClient = {
     });
   },
 
-  // Получение избранных треков (приватно)
+  // Получение избранных треков
   async getFavorites(limit = null) {
     const query = limit ? `?limit=${limit}` : '';
     return await this.request(`/api/favorites${query}`, {
@@ -236,7 +234,7 @@ export const apiClient = {
     });
   },
 
-  // Получение айди всех избранных треков
+  // Получение идентификаторов всех избранных треков
   async getFavoriteIds() {
     return await this.request('/api/favorites/ids', {
       method: 'GET',
@@ -244,12 +242,69 @@ export const apiClient = {
     });
   },
 
-  // Добавить/удалить из избранного
+  // Переключение статуса избранного
   async toggleFavorite(trackId) {
     return await this.request('/api/favorites/toggle', {
       method: 'POST',
       requireAuth: true,
       data: { track_id: trackId },
+    });
+  },
+
+  // Получение всех плейлистов текущего пользователя
+  async getMyPlaylists() {
+    return await this.request('/api/playlists', {
+      method: 'GET',
+      requireAuth: true,
+    });
+  },
+
+  // Получение публичных плейлистов пользователя для профиля
+  async getUserPlaylists(userId) {
+    return await this.request(`/api/users/${userId}/playlists`, {
+      method: 'GET',
+    });
+  },
+
+  // Получение плейлиста по идентификатору
+  async getPlaylist(playlistId) {
+    return await this.request(`/api/playlists/${playlistId}`, {
+      method: 'GET',
+    });
+  },
+
+  // Создание нового плейлиста
+  async createPlaylist(formData) {
+    return await this.upload('/api/playlists', formData);
+  },
+
+  // Обновление плейлиста
+  async updatePlaylist(playlistId, formData) {
+    return await this.upload(`/api/playlists/${playlistId}/update`, formData);
+  },
+
+  // Удаление плейлиста
+  async deletePlaylist(playlistId) {
+    return await this.request(`/api/playlists/${playlistId}`, {
+      method: 'DELETE',
+      requireAuth: true,
+    });
+  },
+
+  // Добавление или удаление трека в плейлисте
+  async togglePlaylistTrack(playlistId, trackId) {
+    return await this.request(`/api/playlists/${playlistId}/tracks`, {
+      method: 'POST',
+      requireAuth: true,
+      data: { track_id: trackId },
+    });
+  },
+
+  // Удаление трека из плейлиста
+  async removePlaylistTrack(playlistId, trackId) {
+    return await this.request(`/api/playlists/${playlistId}/tracks/${trackId}`, {
+      method: 'DELETE',
+      requireAuth: true,
     });
   },
 };

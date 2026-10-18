@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { HashRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AudioProvider } from './context/AudioContext';
 
@@ -12,15 +12,42 @@ import TrackPage from './containers/TrackPage';
 import PlayerPage from './containers/PlayerPage';
 import GlobalPlayer from './components/GlobalPlayer';
 import FavoritesPage from './containers/FavoritesPage';
+import PlaylistsPage from './containers/PlaylistsPage';
+import PlaylistPage from './containers/PlaylistPage';
 
 import './styles/App.css';
 import { FavoritesProvider } from './context/FavoritesContext';
 
-// Определение текущего маршрута для скрытия глобального плеера на странице плеера
+// Определение текущего маршрута и блокировка прокрутки при открытии модальных окон
 function AppLayout() {
   const location = useLocation();
-  // Проверка нахождения на странице /player
   const isPlayerPage = location.pathname === '/player';
+
+  // Автоматическое отключение прокрутки страницы при наличии открытого модального окна с полупрозрачным фоном
+  useEffect(() => {
+    const updateBodyScrollLock = () => {
+      const hasOpenModal = document.querySelector('.modal-background') !== null;
+      if (hasOpenModal) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+    };
+
+    updateBodyScrollLock();
+
+    const observer = new MutationObserver(updateBodyScrollLock);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      observer.disconnect();
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   return (
     <>
       <Header />
@@ -35,9 +62,10 @@ function AppLayout() {
           <Route path="/moderation" element={<ModerationPage />} />
           <Route path="/player" element={<PlayerPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
+          <Route path="/playlists" element={<PlaylistsPage />} />
+          <Route path="/playlists/:id" element={<PlaylistPage />} />
         </Routes>
       </main>
-      {/* Глобальный плеер отображается на всех страницах кроме /player */}
       {!isPlayerPage && <GlobalPlayer />}
     </>
   );

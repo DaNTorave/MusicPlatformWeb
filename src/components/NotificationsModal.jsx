@@ -328,13 +328,6 @@ export default function NotificationsModal({
                           <p className="notification-message-snippet">
                             {item.message}
                           </p>
-
-                          {/* Плашка с причиной для отклоненных материалов */}
-                          {isRejected && reasonSnippet && (
-                            <div className="notification-reason-preview">
-                              <strong>Причина:</strong> {reasonSnippet}
-                            </div>
-                          )}
                         </div>
 
                         {/* Индикатор непрочитанного */}

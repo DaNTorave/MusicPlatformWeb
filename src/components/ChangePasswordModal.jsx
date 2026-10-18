@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation } from '../hooks/useApi';
 
-import InputField from './InputField';
 import Button from './Button';
 
 import eye from '../assets/eye.svg';
 import eye_crossed from '../assets/eye-crossed.svg';
+import closeIcon from '../assets/close-icon.svg';
 
 import '../styles/AuthModal.css';
 import '../styles/Register.css';
 import '../styles/Login.css';
 
-export default function ChangePasswordModal({ isOpen, onClose }) {
+export function ChangePasswordContent({ onClose }) {
   // Состояния для полей пароля
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -25,7 +25,6 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
   // Состояния ошибок и успеха
   const [fieldError, setFieldError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [isClosing, setIsClosing] = useState(false);
 
   // Ошибки валидации по полям
   const [errors, setErrors] = useState({
@@ -34,39 +33,6 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     confirmPassword: '',
   });
 
-  // Сброс формы в начальное состояние
-  const resetForm = () => {
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setFieldError('');
-    setSuccessMessage('');
-    setErrors({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
-    });
-  };
-
-  // Закрытие с анимацией и сбросом
-  const handleClose = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      setIsClosing(false);
-      resetForm();
-      onClose();
-    }, 300);
-  };
-
-  // Закрытие по Escape
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && isOpen) handleClose();
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen]);
-
   // Мутация смены пароля
   const { mutate, loading } = useMutation('/api/change-password', {
     method: 'PUT',
@@ -74,7 +40,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     onSuccess: (data) => {
       setSuccessMessage(data.message || 'Пароль успешно изменен!');
       setTimeout(() => {
-        handleClose();
+        if (onClose) onClose();
       }, 1500);
     },
     onError: (err) => {
@@ -144,7 +110,6 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     const error = validateField(field, value);
     setErrors((prev) => ({ ...prev, [field]: error }));
 
-    // Перепроверка подтверждения при изменении нового пароля
     if (field === 'newPassword' && confirmPassword) {
       const confError = validateField('confirmPassword', confirmPassword);
       setErrors((prev) => ({ ...prev, confirmPassword: confError }));
@@ -176,13 +141,193 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     });
   };
 
-  if (!isOpen) return null;
-
   const passwordStrength = getPasswordStrength(newPassword);
   const hasErrors = Boolean(
     errors.currentPassword || errors.newPassword || errors.confirmPassword,
   );
   const isEmpty = !currentPassword || !newPassword || !confirmPassword;
+
+  return (
+    <form className="auth-form" onSubmit={handleSubmit}>
+      <h2 className="auth-form-title">Изменить пароль</h2>
+      <p className="auth-form-subtitle">Укажите текущий и новый пароль</p>
+
+      {fieldError && (
+        <div className="auth-error-global" role="alert">
+          {fieldError}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="auth-success-global" role="alert">
+          {successMessage}
+        </div>
+      )}
+
+      {/* Текущий пароль */}
+      <div className="auth-form-group">
+        <label htmlFor="change-current-password">
+          Текущий пароль <span className="required-star">*</span>
+        </label>
+        <div className="password-input-wrapper">
+          <input
+            id="change-current-password"
+            type={showCurrentPassword ? 'text' : 'password'}
+            placeholder="Введите текущий пароль"
+            value={currentPassword}
+            onChange={(e) =>
+              handleFieldChange('currentPassword', e.target.value)
+            }
+            required
+            disabled={loading}
+            className={errors.currentPassword ? 'error' : ''}
+          />
+          <button
+            type="button"
+            className="password-toggle"
+            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+            tabIndex="-1"
+            disabled={loading}
+          >
+            <img
+              className="password-toggle-icon"
+              src={showCurrentPassword ? eye_crossed : eye}
+              alt="Видимость пароля"
+            />
+          </button>
+        </div>
+        {errors.currentPassword && (
+          <span className="auth-error">{errors.currentPassword}</span>
+        )}
+      </div>
+
+      {/* Новый пароль */}
+      <div className="auth-form-group">
+        <label htmlFor="change-new-password">
+          Новый пароль <span className="required-star">*</span>
+        </label>
+        <div className="password-input-wrapper">
+          <input
+            id="change-new-password"
+            type={showNewPassword ? 'text' : 'password'}
+            placeholder="Минимум 8 символов"
+            value={newPassword}
+            onChange={(e) => handleFieldChange('newPassword', e.target.value)}
+            required
+            minLength={8}
+            disabled={loading}
+            className={errors.newPassword ? 'error' : ''}
+          />
+          <button
+            type="button"
+            className="password-toggle"
+            onClick={() => setShowNewPassword(!showNewPassword)}
+            tabIndex="-1"
+            disabled={loading}
+          >
+            <img
+              className="password-toggle-icon"
+              src={showNewPassword ? eye_crossed : eye}
+              alt="Видимость пароля"
+            />
+          </button>
+        </div>
+        {errors.newPassword && (
+          <span className="auth-error">{errors.newPassword}</span>
+        )}
+        {newPassword && !errors.newPassword && passwordStrength && (
+          <div className="password-strength">
+            <div
+              className={`password-strength-bar ${passwordStrength.class}`}
+            ></div>
+            <span
+              className={`password-strength-text ${passwordStrength.class}`}
+            >
+              {passwordStrength.label}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Подтверждение пароля */}
+      <div className="auth-form-group">
+        <label htmlFor="change-confirm-password">
+          Подтверждение нового пароля <span className="required-star">*</span>
+        </label>
+        <div className="password-input-wrapper">
+          <input
+            id="change-confirm-password"
+            type={showConfirmPassword ? 'text' : 'password'}
+            placeholder="Повторите новый пароль"
+            value={confirmPassword}
+            onChange={(e) =>
+              handleFieldChange('confirmPassword', e.target.value)
+            }
+            required
+            minLength={8}
+            disabled={loading}
+            className={errors.confirmPassword ? 'error' : ''}
+          />
+          <button
+            type="button"
+            className="password-toggle"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            tabIndex="-1"
+            disabled={loading}
+          >
+            <img
+              className="password-toggle-icon"
+              src={showConfirmPassword ? eye_crossed : eye}
+              alt="Видимость пароля"
+            />
+          </button>
+        </div>
+        {errors.confirmPassword && (
+          <span className="auth-error">{errors.confirmPassword}</span>
+        )}
+      </div>
+
+      <Button
+        type="submit"
+        variant="primary"
+        disabled={loading || hasErrors || isEmpty}
+        fullWidth
+      >
+        {loading ? (
+          <>
+            <span className="spinner"></span>
+            Обновление...
+          </>
+        ) : (
+          'Сохранить пароль'
+        )}
+      </Button>
+    </form>
+  );
+}
+
+export default function ChangePasswordModal({ isOpen, onClose }) {
+  const [isClosing, setIsClosing] = useState(false);
+
+  // Закрытие с анимацией
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsClosing(false);
+      onClose();
+    }, 300);
+  };
+
+  // Закрытие по Escape
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isOpen) handleClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   return (
     <div
@@ -193,173 +338,21 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     >
       <div className={`modal-window ${isClosing ? 'closing' : ''}`}>
         <div className="modal-window-top-buttons">
-          <button className="modal-window-top-button active">
+          <button type="button" className="modal-window-top-button active">
             Смена пароля
           </button>
-          <button className="modal-close-button" onClick={handleClose}>
-            ✕
+          <button
+            type="button"
+            className="modal-close-button"
+            onClick={handleClose}
+            title="Закрыть"
+          >
+            <img src={closeIcon} alt="Закрыть" />
           </button>
         </div>
 
         <div className="modal-window-content">
-          <form className="auth-form" onSubmit={handleSubmit}>
-            <h2 className="auth-form-title">Изменить пароль</h2>
-            <p className="auth-form-subtitle">Укажите текущий и новый пароль</p>
-
-            {fieldError && (
-              <div className="auth-error-global" role="alert">
-                {fieldError}
-              </div>
-            )}
-
-            {successMessage && (
-              <div className="auth-success-global" role="alert">
-                {successMessage}
-              </div>
-            )}
-
-            {/* Текущий пароль */}
-            <div className="auth-form-group">
-              <label htmlFor="change-current-password">
-                Текущий пароль <span className="required-star">*</span>
-              </label>
-              <div className="password-input-wrapper">
-                <input
-                  id="change-current-password"
-                  type={showCurrentPassword ? 'text' : 'password'}
-                  placeholder="Введите текущий пароль"
-                  value={currentPassword}
-                  onChange={(e) =>
-                    handleFieldChange('currentPassword', e.target.value)
-                  }
-                  required
-                  disabled={loading}
-                  className={errors.currentPassword ? 'error' : ''}
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  tabIndex="-1"
-                  disabled={loading}
-                >
-                  <img
-                    className="password-toggle-icon"
-                    src={showCurrentPassword ? eye_crossed : eye}
-                    alt="Видимость пароля"
-                  />
-                </button>
-              </div>
-              {errors.currentPassword && (
-                <span className="auth-error">{errors.currentPassword}</span>
-              )}
-            </div>
-
-            {/* Новый пароль */}
-            <div className="auth-form-group">
-              <label htmlFor="change-new-password">
-                Новый пароль <span className="required-star">*</span>
-              </label>
-              <div className="password-input-wrapper">
-                <input
-                  id="change-new-password"
-                  type={showNewPassword ? 'text' : 'password'}
-                  placeholder="Минимум 8 символов"
-                  value={newPassword}
-                  onChange={(e) =>
-                    handleFieldChange('newPassword', e.target.value)
-                  }
-                  required
-                  minLength={8}
-                  disabled={loading}
-                  className={errors.newPassword ? 'error' : ''}
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  tabIndex="-1"
-                  disabled={loading}
-                >
-                  <img
-                    className="password-toggle-icon"
-                    src={showNewPassword ? eye_crossed : eye}
-                    alt="Видимость пароля"
-                  />
-                </button>
-              </div>
-              {errors.newPassword && (
-                <span className="auth-error">{errors.newPassword}</span>
-              )}
-              {newPassword && !errors.newPassword && passwordStrength && (
-                <div className="password-strength">
-                  <div
-                    className={`password-strength-bar ${passwordStrength.class}`}
-                  ></div>
-                  <span
-                    className={`password-strength-text ${passwordStrength.class}`}
-                  >
-                    {passwordStrength.label}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Подтверждение пароля */}
-            <div className="auth-form-group">
-              <label htmlFor="change-confirm-password">
-                Подтверждение нового пароля{' '}
-                <span className="required-star">*</span>
-              </label>
-              <div className="password-input-wrapper">
-                <input
-                  id="change-confirm-password"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="Повторите новый пароль"
-                  value={confirmPassword}
-                  onChange={(e) =>
-                    handleFieldChange('confirmPassword', e.target.value)
-                  }
-                  required
-                  minLength={8}
-                  disabled={loading}
-                  className={errors.confirmPassword ? 'error' : ''}
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  tabIndex="-1"
-                  disabled={loading}
-                >
-                  <img
-                    className="password-toggle-icon"
-                    src={showConfirmPassword ? eye_crossed : eye}
-                    alt="Видимость пароля"
-                  />
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <span className="auth-error">{errors.confirmPassword}</span>
-              )}
-            </div>
-
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={loading || hasErrors || isEmpty}
-              fullWidth
-            >
-              {loading ? (
-                <>
-                  <span className="spinner"></span>
-                  Обновление...
-                </>
-              ) : (
-                'Сохранить пароль'
-              )}
-            </Button>
-          </form>
+          <ChangePasswordContent onClose={handleClose} />
         </div>
       </div>
     </div>
