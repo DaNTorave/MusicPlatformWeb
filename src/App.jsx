@@ -8,6 +8,7 @@ import ProfilePage from './containers/ProfilePage';
 import ArtistPage from './containers/ArtistPage';
 import AlbumPage from './containers/AlbumPage';
 import ModerationPage from './containers/ModerationPage';
+import RolesPage from './containers/RolesPage';
 import TrackPage from './containers/TrackPage';
 import PlayerPage from './containers/PlayerPage';
 import GlobalPlayer from './components/GlobalPlayer';
@@ -18,12 +19,10 @@ import PlaylistPage from './containers/PlaylistPage';
 import './styles/App.css';
 import { FavoritesProvider } from './context/FavoritesContext';
 
-// Определение текущего маршрута и блокировка прокрутки при открытии модальных окон
 function AppLayout() {
   const location = useLocation();
   const isPlayerPage = location.pathname === '/player';
 
-  // Автоматическое отключение прокрутки страницы при наличии открытого модального окна с полупрозрачным фоном
   useEffect(() => {
     const updateBodyScrollLock = () => {
       const hasOpenModal = document.querySelector('.modal-background') !== null;
@@ -60,6 +59,7 @@ function AppLayout() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/:id" element={<ProfilePage />} />
           <Route path="/moderation" element={<ModerationPage />} />
+          <Route path="/roles" element={<RolesPage />} />
           <Route path="/player" element={<PlayerPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/playlists" element={<PlaylistsPage />} />

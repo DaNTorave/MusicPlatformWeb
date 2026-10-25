@@ -13,7 +13,6 @@ import userIcon from '../assets/user-svgrepo-com.svg';
 import '../styles/Header.css';
 
 export default function Header() {
-  // Единое состояние для активного модального окна в шапке ('auth' | 'upload' | 'notifications' | null)
   const [activeModal, setActiveModal] = useState(null);
   const [user, setUser] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -59,6 +58,7 @@ export default function Header() {
 
     window.addEventListener('auth:unauthorized', handleAuthChange);
     window.addEventListener('auth:login', handleAuthChange);
+    window.addEventListener('user:updated', handleAuthChange);
     window.addEventListener('notifications:update', handleNotificationsChange);
     window.addEventListener('storage', (e) => {
       if (e.key === 'user' || e.key === 'authToken') {
@@ -81,6 +81,7 @@ export default function Header() {
     return () => {
       window.removeEventListener('auth:unauthorized', handleAuthChange);
       window.removeEventListener('auth:login', handleAuthChange);
+      window.removeEventListener('user:updated', handleAuthChange);
       window.removeEventListener(
         'notifications:update',
         handleNotificationsChange,
@@ -130,6 +131,13 @@ export default function Header() {
   };
 
   const displayName = user ? user.nickname || user.login : null;
+  // Проверка прав на администрирование ролей и модерацию контента
+  const canManageRoles = user && (user.role === 'owner' || user.role === 'admin');
+  const isStaff = user && (user.role === 'owner' || user.role === 'admin' || user.role === 'moderator');
+
+  // Определение пути к аватарке или дефолтной иконке
+  const avatarSrc = user && user.avatar && user.avatar.trim() !== '' ? user.avatar : userIcon;
+  const isCustomAvatar = Boolean(user && user.avatar && user.avatar.trim() !== '');
 
   return (
     <>
@@ -178,9 +186,9 @@ export default function Header() {
               onClick={handleUserClick}
             >
               <img
-                className="user-icon"
-                src={userIcon}
-                alt="Иконка пользователя"
+                className={`user-icon ${isCustomAvatar ? 'user-avatar-image' : ''}`}
+                src={avatarSrc}
+                alt={user ? displayName : 'Пользователь'}
               />
               <span>{user ? displayName : 'Войти'}</span>
             </Button>
@@ -196,19 +204,32 @@ export default function Header() {
                   <span>Профиль</span>
                 </button>
 
-                {user &&
-                  (user.role === 'admin' || user.role === 'moderator') && (
-                    <button
-                      type="button"
-                      className="dropdown-item"
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        navigate('/moderation');
-                      }}
-                    >
-                      <span>Модерация</span>
-                    </button>
-                  )}
+                {/* Пункт управления ролями для владельца и администратора */}
+                {canManageRoles && (
+                  <button
+                    type="button"
+                    className="dropdown-item"
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      navigate('/roles');
+                    }}
+                  >
+                    <span>Управление ролями</span>
+                  </button>
+                )}
+
+                {isStaff && (
+                  <button
+                    type="button"
+                    className="dropdown-item"
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      navigate('/moderation');
+                    }}
+                  >
+                    <span>Модерация</span>
+                  </button>
+                )}
 
                 <button
                   type="button"

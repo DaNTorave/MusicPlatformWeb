@@ -22,7 +22,6 @@ async function parseResponse(response) {
 }
 
 export const apiClient = {
-  // Сохранение токена в localStorage
   setToken(token) {
     if (token) {
       localStorage.setItem('authToken', token);
@@ -31,12 +30,10 @@ export const apiClient = {
     }
   },
 
-  // Получение токена из localStorage
   getToken() {
     return localStorage.getItem('authToken');
   },
 
-  // Сохранение данных пользователя
   setUser(user) {
     if (user) {
       localStorage.setItem('user', JSON.stringify(user));
@@ -46,7 +43,6 @@ export const apiClient = {
     }
   },
 
-  // Получение данных пользователя
   getUser() {
     const user = localStorage.getItem('user');
     try {
@@ -56,13 +52,11 @@ export const apiClient = {
     }
   },
 
-  // Очистка сессии
   clearSession() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
   },
 
-  // Основной метод выполнения запросов к API
   async request(url, options = {}) {
     const {
       method = 'GET',
@@ -78,7 +72,6 @@ export const apiClient = {
     }
 
     try {
-      console.log(`[API] Запрос: ${method} ${url}`, data || '');
       const response = await fetch(url, {
         method,
         headers,
@@ -86,7 +79,6 @@ export const apiClient = {
       });
 
       const parsedData = await parseResponse(response);
-      console.log(`[API] Ответ от сервера:`, parsedData);
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -106,7 +98,6 @@ export const apiClient = {
           error.validationErrors = parsedData.errors;
         }
 
-        console.error('[API] Ошибка сервера:', error);
         throw error;
       }
 
@@ -121,7 +112,6 @@ export const apiClient = {
     }
   },
 
-  // Авторизация
   async login(credentials) {
     const response = await this.request('/api/login', {
       method: 'POST',
@@ -138,7 +128,6 @@ export const apiClient = {
     return response;
   },
 
-  // Регистрация с последующим автоматическим входом
   async registerAndLogin(userData) {
     const registerResponse = await this.request('/api/register', {
       method: 'POST',
@@ -166,7 +155,6 @@ export const apiClient = {
     };
   },
 
-  // Загрузка файлов через FormData
   async upload(url, formData) {
     const token = this.getToken();
     const headers = {};
@@ -175,7 +163,6 @@ export const apiClient = {
     }
 
     try {
-      console.log(`[API] Upload: POST ${url}`);
       const response = await fetch(url, {
         method: 'POST',
         headers,
@@ -209,7 +196,6 @@ export const apiClient = {
     }
   },
 
-  // Получение уведомлений текущего пользователя
   async getNotifications() {
     return await this.request('/api/notifications', {
       method: 'GET',
@@ -217,7 +203,6 @@ export const apiClient = {
     });
   },
 
-  // Отметка уведомления как прочитанного
   async markNotificationRead(id) {
     return await this.request(`/api/notifications/${id}/read`, {
       method: 'PUT',
@@ -225,7 +210,6 @@ export const apiClient = {
     });
   },
 
-  // Получение избранных треков
   async getFavorites(limit = null) {
     const query = limit ? `?limit=${limit}` : '';
     return await this.request(`/api/favorites${query}`, {
@@ -234,7 +218,6 @@ export const apiClient = {
     });
   },
 
-  // Получение идентификаторов всех избранных треков
   async getFavoriteIds() {
     return await this.request('/api/favorites/ids', {
       method: 'GET',
@@ -242,7 +225,6 @@ export const apiClient = {
     });
   },
 
-  // Переключение статуса избранного
   async toggleFavorite(trackId) {
     return await this.request('/api/favorites/toggle', {
       method: 'POST',
@@ -251,7 +233,6 @@ export const apiClient = {
     });
   },
 
-  // Получение всех плейлистов текущего пользователя
   async getMyPlaylists() {
     return await this.request('/api/playlists', {
       method: 'GET',
@@ -259,31 +240,26 @@ export const apiClient = {
     });
   },
 
-  // Получение публичных плейлистов пользователя для профиля
   async getUserPlaylists(userId) {
     return await this.request(`/api/users/${userId}/playlists`, {
       method: 'GET',
     });
   },
 
-  // Получение плейлиста по идентификатору
   async getPlaylist(playlistId) {
     return await this.request(`/api/playlists/${playlistId}`, {
       method: 'GET',
     });
   },
 
-  // Создание нового плейлиста
   async createPlaylist(formData) {
     return await this.upload('/api/playlists', formData);
   },
 
-  // Обновление плейлиста
   async updatePlaylist(playlistId, formData) {
     return await this.upload(`/api/playlists/${playlistId}/update`, formData);
   },
 
-  // Удаление плейлиста
   async deletePlaylist(playlistId) {
     return await this.request(`/api/playlists/${playlistId}`, {
       method: 'DELETE',
@@ -291,7 +267,6 @@ export const apiClient = {
     });
   },
 
-  // Добавление или удаление трека в плейлисте
   async togglePlaylistTrack(playlistId, trackId) {
     return await this.request(`/api/playlists/${playlistId}/tracks`, {
       method: 'POST',
@@ -300,11 +275,27 @@ export const apiClient = {
     });
   },
 
-  // Удаление трека из плейлиста
   async removePlaylistTrack(playlistId, trackId) {
     return await this.request(`/api/playlists/${playlistId}/tracks/${trackId}`, {
       method: 'DELETE',
       requireAuth: true,
+    });
+  },
+
+  // Методы панели владельца (owner)
+  async getUsers(searchQuery = '') {
+    const q = searchQuery ? `?query=${encodeURIComponent(searchQuery)}` : '';
+    return await this.request(`/api/admin/users${q}`, {
+      method: 'GET',
+      requireAuth: true,
+    });
+  },
+
+  async updateUserRole(userId, newRole) {
+    return await this.request(`/api/admin/users/${userId}/role`, {
+      method: 'PUT',
+      requireAuth: true,
+      data: { role: newRole },
     });
   },
 };

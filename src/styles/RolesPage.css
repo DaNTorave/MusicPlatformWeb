@@ -1,0 +1,172 @@
+.roles-page-container {
+  max-width: auto;
+  margin: 1.5rem;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+.roles-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.roles-header-row h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 0 0 6px 0;
+  color: #0f172a;
+}
+
+.roles-subtitle {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.roles-search-form {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.roles-search-form .input-field-container {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.roles-table-wrapper {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  overflow-x: auto;
+}
+
+.roles-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.92rem;
+}
+
+.roles-table th {
+  padding: 14px 16px;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.roles-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.roles-table tbody tr:hover {
+  background-color: #fcfdfe;
+}
+
+.current-user-row {
+  background-color: #f8fafc;
+}
+
+.roles-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.roles-user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #e2e8f0;
+}
+
+.roles-user-names {
+  display: flex;
+  flex-direction: column;
+}
+
+.roles-user-nick {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.roles-user-login {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: all 0.1s;
+}
+
+.roles-user-login:hover {
+  color: #1773cf;
+  text-decoration: underline;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.role-owner {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.role-admin {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.role-moderator {
+  background: #e0e7ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+}
+
+.role-member {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.roles-you-pill {
+  margin-left: 6px;
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.roles-select-input {
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #1e293b;
+  font-size: 0.86rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.roles-select-input:focus {
+  border-color: #0284c7;
+}
+
+.roles-select-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
