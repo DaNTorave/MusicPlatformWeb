@@ -1,5 +1,8 @@
 import React from 'react';
+
 import { useNavigate } from 'react-router-dom';
+import { formatEntityType } from '../hooks/formatters';
+
 import Button from './Button';
 import closeIcon from '../assets/close-icon.svg';
 import checkIcon from '../assets/check-circle.svg';
@@ -111,7 +114,7 @@ export function NotificationDetailContent({
           </h3>
           <p>
             {notification.entity_type
-              ? `Тип объекта: ${notification.entity_type.toUpperCase()}`
+              ? `Тип объекта: ${formatEntityType(notification.entity_type)}`
               : 'Служба модерации Music Platform'}
           </p>
         </div>

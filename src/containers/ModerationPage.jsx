@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiClient } from '../api/apiClient';
+import { formatEntityType } from '../hooks/formatters';
 
 import Button from '../components/Button';
 import ModerationModal from '../components/ModerationModal';
@@ -124,7 +125,9 @@ export default function ModerationPage() {
                   />
 
                   <div className="moderation-card-info">
-                    <span className="moderation-card-type">[{item.type}]</span>
+                    <span className="moderation-card-type">
+                      [{formatEntityType(item.type)}]
+                    </span>
                     <h3 className="moderation-card-title">
                       {item.title || item.name}
                     </h3>
