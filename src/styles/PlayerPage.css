@@ -422,3 +422,31 @@
     height: 28px;
   }
 }
+
+.player-page-side-btn {
+  opacity: 0.6;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.player-page-side-btn:hover {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+.player-page-side-btn img {
+  width: 19px;
+  height: 19px;
+}
+
+.player-page-side-btn.is-fav {
+  opacity: 1;
+}
+
+.player-page-side-fav {
+  filter: grayscale(100%);
+  transition: filter 0.2s ease;
+}
+
+.player-page-side-btn.is-fav .player-page-side-fav {
+  filter: none;
+}

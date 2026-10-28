@@ -29,7 +29,7 @@ export default function AlbumPage() {
   const currentUser = apiClient.getUser();
   const isStaff =
     currentUser &&
-    (currentUser.role === 'admin' || currentUser.role === 'moderator');
+    (currentUser.role === 'admin' || currentUser.role === 'moderator' || currentUser.role === 'owner');
 
   // Загрузка данных альбома
   const fetchAlbum = async () => {

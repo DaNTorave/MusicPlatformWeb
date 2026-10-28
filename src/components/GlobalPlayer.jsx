@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAudioPlayer } from '../context/AudioContext';
+import { useFavorites } from '../context/FavoritesContext';
 
 import AgeBadge from './AgeBadge';
 
@@ -10,6 +11,8 @@ import pauseIcon from '../assets/pause-icon.svg';
 import prevIcon from '../assets/prev-icon.svg';
 import nextIcon from '../assets/next-icon.svg';
 import volumeIcon from '../assets/volume-icon.svg';
+import favoriteIcon from '../assets/favorite.svg';
+import downloadIcon from '../assets/download-icon.svg';
 
 import '../styles/GlobalPlayer.css';
 
@@ -25,12 +28,13 @@ export default function GlobalPlayer() {
     setVolume,
     audioRef,
   } = useAudioPlayer();
-  // Состояния прогресса и длительности трека
+
+  const { isFavorite, toggleFavorite } = useFavorites();
+
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Подписка на события аудио для обновления прогресса и длительности
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -50,7 +54,6 @@ export default function GlobalPlayer() {
     };
   }, [audioRef, isDragging]);
 
-  // Перемотка трека по клику на прогресс-бар
   const handleSeek = (e) => {
     const audio = audioRef.current;
     if (!audio || !duration) return;
@@ -61,7 +64,6 @@ export default function GlobalPlayer() {
     setProgress(newTime);
   };
 
-  // Форматирование времени в минуты и секунды
   const formatTime = (time) => {
     if (!time || isNaN(time)) return '0:00';
     const minutes = Math.floor(time / 60);
@@ -77,7 +79,6 @@ export default function GlobalPlayer() {
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx !== -1 && currentIdx + 1 < queue.length;
 
-  // Формирование списка всех исполнителей трека
   const allArtists = [];
   if (currentTrack.artist && currentTrack.artist.name) {
     allArtists.push(currentTrack.artist);
@@ -102,6 +103,25 @@ export default function GlobalPlayer() {
 
   const originalTrack = currentTrack.original_track;
   const isCover = currentTrack.is_cover || Boolean(originalTrack);
+  const isCurrentFav = isFavorite(currentTrack.id);
+
+  const handleFavoriteClick = (e) => {
+    e.stopPropagation();
+    if (currentTrack.id) {
+      toggleFavorite(currentTrack.id);
+    }
+  };
+
+  const handleDownload = (e) => {
+    e.stopPropagation();
+    if (!currentTrack.id) return;
+    const link = document.createElement('a');
+    link.href = `/api/download/${currentTrack.id}`;
+    link.download = `${currentTrack.title || 'track'}.mp3`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="global-player-bar">
@@ -129,7 +149,6 @@ export default function GlobalPlayer() {
 
             {currentTrack.age_restriction && <AgeBadge size="small" />}
 
-            {/* Бейдж кавера с возможностью переключения на оригинал */}
             {isCover && (
               <span
                 className={`player-cover-badge ${originalTrack ? 'clickable' : ''}`}
@@ -150,7 +169,7 @@ export default function GlobalPlayer() {
                 }}
                 title={
                   originalTrack
-                    ? `Оригинал: ${originalTrack.title} — ${originalTrack.artist?.name || ''} (нажмите для включения)`
+                    ? `Оригинал: ${originalTrack.title} – ${originalTrack.artist?.name || ''} (нажмите для включения)`
                     : 'Кавер'
                 }
               >
@@ -184,6 +203,16 @@ export default function GlobalPlayer() {
         <div className="player-controls">
           <button
             type="button"
+            className={`player-btn-secondary player-side-action-btn ${isCurrentFav ? 'is-fav' : ''}`}
+            onClick={handleFavoriteClick}
+            disabled={!currentTrack.id}
+            title={isCurrentFav ? 'Удалить из избранного' : 'В избранное'}
+          >
+            <img src={favoriteIcon} alt="Избранное" className="player-side-icon player-fav-img" />
+          </button>
+
+          <button
+            type="button"
             className="player-btn-secondary"
             onClick={prevTrack}
             disabled={
@@ -215,6 +244,16 @@ export default function GlobalPlayer() {
             title="Следующий трек"
           >
             <img src={nextIcon} alt="Вперед" className="player-nav-icon" />
+          </button>
+
+          <button
+            type="button"
+            className="player-btn-secondary player-side-action-btn"
+            onClick={handleDownload}
+            disabled={!currentTrack.id}
+            title="Скачать трек"
+          >
+            <img src={downloadIcon} alt="Скачать" className="player-side-icon" />
           </button>
         </div>
 

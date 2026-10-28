@@ -104,7 +104,7 @@ export default function PlaylistPage() {
     currentUser && Number(currentUser.id) === Number(playlist.user_id);
   const isStaff =
     currentUser &&
-    (currentUser.role === 'admin' || currentUser.role === 'moderator');
+    (currentUser.role === 'admin' || currentUser.role === 'moderator' || currentUser.role === 'owner');
   const canManage = isOwner || isStaff;
 
   const pTrackIds = tracks.map((t) => String(t.id));

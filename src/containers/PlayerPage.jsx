@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAudioPlayer } from '../context/AudioContext';
+import { useFavorites } from '../context/FavoritesContext';
 import { useState, useEffect, useRef } from 'react';
 
 import AgeBadge from '../components/AgeBadge';
@@ -11,10 +12,11 @@ import pauseIcon from '../assets/pause-icon.svg';
 import prevIcon from '../assets/prev-icon.svg';
 import nextIcon from '../assets/next-icon.svg';
 import volumeIcon from '../assets/volume-icon.svg';
+import favoriteIcon from '../assets/favorite.svg';
+import downloadIcon from '../assets/download-icon.svg';
 
 import '../styles/PlayerPage.css';
 
-// Страница полноэкранного плеера
 export default function PlayerPage() {
   const navigate = useNavigate();
   const {
@@ -28,12 +30,13 @@ export default function PlayerPage() {
     setVolume,
     audioRef,
   } = useAudioPlayer();
-  // Состояния прогресса и длительности
+
+  const { isFavorite, toggleFavorite } = useFavorites();
+
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Состояния вращения винила
   const [rotation, setRotation] = useState(0);
   const rotationRef = useRef(0);
   const lastTimeRef = useRef(null);
@@ -43,7 +46,6 @@ export default function PlayerPage() {
     rotationRef.current = rotation;
   }, [rotation]);
 
-  // Анимация вращения винила при воспроизведении
   useEffect(() => {
     if (!isPlaying) {
       lastTimeRef.current = null;
@@ -74,7 +76,6 @@ export default function PlayerPage() {
     };
   }, [isPlaying]);
 
-  // Обновление прогресса и длительности трека
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -118,7 +119,6 @@ export default function PlayerPage() {
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx !== -1 && currentIdx + 1 < queue.length;
 
-  // Формирование списка исполнителей
   const allArtists = [];
   if (currentTrack.artist && currentTrack.artist.name) {
     allArtists.push(currentTrack.artist);
@@ -139,8 +139,8 @@ export default function PlayerPage() {
 
   const originalTrack = currentTrack.original_track;
   const isCover = currentTrack.is_cover || Boolean(originalTrack);
+  const isCurrentFav = isFavorite(currentTrack.id);
 
-  // Перемотка трека
   const handleSeek = (e) => {
     const audio = audioRef.current;
     if (!audio || !duration) return;
@@ -151,7 +151,6 @@ export default function PlayerPage() {
     setProgress(newTime);
   };
 
-  // Форматирование времени
   const formatTime = (time) => {
     if (!time || isNaN(time)) return '0:00';
     const minutes = Math.floor(time / 60);
@@ -159,7 +158,6 @@ export default function PlayerPage() {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Переключение воспроизведения
   const handleTogglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -170,7 +168,6 @@ export default function PlayerPage() {
     }
   };
 
-  // Воспроизведение оригинального трека
   const handlePlayOriginal = () => {
     if (originalTrack) {
       playTrack({
@@ -179,6 +176,22 @@ export default function PlayerPage() {
         artist: originalTrack.artist || { name: 'Исполнитель' },
       });
     }
+  };
+
+  const handleFavoriteClick = () => {
+    if (currentTrack.id) {
+      toggleFavorite(currentTrack.id);
+    }
+  };
+
+  const handleDownload = () => {
+    if (!currentTrack.id) return;
+    const link = document.createElement('a');
+    link.href = `/api/download/${currentTrack.id}`;
+    link.download = `${currentTrack.title || 'track'}.mp3`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -190,7 +203,6 @@ export default function PlayerPage() {
       <div className="player-page-content">
         <div className="player-page-left">
           <div className="player-page-left-container">
-            {/* Вращающийся винил */}
             <div className={`vinyl-wrapper ${isPlaying ? 'spinning' : ''}`}>
               <div
                 className="vinyl-disc"
@@ -241,7 +253,6 @@ export default function PlayerPage() {
               </div>
             </div>
 
-            {/* Бейдж кавера */}
             {isCover && (
               <div
                 className={`player-page-cover-badge ${originalTrack ? 'clickable' : ''}`}
@@ -282,6 +293,15 @@ export default function PlayerPage() {
             <div className="player-page-controls">
               <button
                 type="button"
+                className={`player-page-btn-secondary player-page-side-btn ${isCurrentFav ? 'is-fav' : ''}`}
+                onClick={handleFavoriteClick}
+                title={isCurrentFav ? 'Удалить из избранного' : 'В избранное'}
+              >
+                <img src={favoriteIcon} alt="Избранное" className="player-page-side-fav" />
+              </button>
+
+              <button
+                type="button"
                 className="player-page-btn-secondary"
                 onClick={prevTrack}
                 disabled={!hasPrev}
@@ -307,6 +327,15 @@ export default function PlayerPage() {
                 title="Следующий трек"
               >
                 <img src={nextIcon} alt="Вперед" />
+              </button>
+
+              <button
+                type="button"
+                className="player-page-btn-secondary player-page-side-btn"
+                onClick={handleDownload}
+                title="Скачать трек"
+              >
+                <img src={downloadIcon} alt="Скачать" />
               </button>
             </div>
 

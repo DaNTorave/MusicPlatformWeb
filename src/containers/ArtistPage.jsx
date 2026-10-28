@@ -43,7 +43,7 @@ export default function ArtistPage() {
   const currentUser = apiClient.getUser();
   const isStaff =
     currentUser &&
-    (currentUser.role === 'admin' || currentUser.role === 'moderator');
+    (currentUser.role === 'admin' || currentUser.role === 'moderator' || currentUser.role === 'owner');
 
   // Загрузка данных артиста
   const fetchArtist = async () => {

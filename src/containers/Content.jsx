@@ -38,7 +38,7 @@ export default function Content() {
   const currentUser = apiClient.getUser();
   const isStaff =
     currentUser &&
-    (currentUser.role === 'admin' || currentUser.role === 'moderator');
+    (currentUser.role === 'admin' || currentUser.role === 'moderator' || currentUser.role === 'owner');
 
   // Загрузка артистов и треков чарта
   const fetchData = async () => {
