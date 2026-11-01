@@ -546,3 +546,7 @@
 .error-text {
   color: red;
 }
+
+.chart-filter-btn:hover {
+  background: #f7f8fa;
+}

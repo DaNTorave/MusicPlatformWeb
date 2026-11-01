@@ -244,6 +244,19 @@ export default function Header() {
                   )}
                 </button>
 
+                {user && user.role === 'owner' && (
+                  <button
+                    type="button"
+                    className="dropdown-item"
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      navigate('/genres');
+                    }}
+                  >
+                    <span>Кластер жанров</span>
+                  </button>
+                )}
+
                 <div className="dropdown-divider"></div>
 
                 <button

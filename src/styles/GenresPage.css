@@ -1,0 +1,108 @@
+.genres-manager-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 32px;
+}
+
+.genres-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+}
+
+.genres-create-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 28px;
+}
+
+.genres-create-card h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 1.15rem;
+  color: #0f172a;
+}
+
+.genres-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.genres-btn-submit-wrapper {
+  margin-top: 16px;
+}
+
+.genres-table-wrapper {
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.genres-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.genres-table th,
+.genres-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.genres-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.genres-table td code {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #0f172a;
+}
+
+.genres-action-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-edit-chip,
+.btn-save-chip,
+.btn-cancel-chip,
+.btn-delete-chip {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-edit-chip {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.btn-save-chip {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.btn-cancel-chip {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.btn-delete-chip {
+  background: #fee2e2;
+  color: #b91c1c;
+}

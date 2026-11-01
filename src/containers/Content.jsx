@@ -19,15 +19,14 @@ import searchIcon from '../assets/search-icon.svg';
 import '../styles/Content.css';
 
 export default function Content() {
-  // Состояния для модальных окон и данных
   const [isArtistModalOpen, setIsArtistModalOpen] = useState(false);
   const [artists, setArtists] = useState([]);
+  const [genresList, setGenresList] = useState([]);
   const [topTracks, setTopTracks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingArtist, setEditingArtist] = useState(null);
   const [chartLimit, setChartLimit] = useState(10);
 
-  // Состояния поиска
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -40,16 +39,18 @@ export default function Content() {
     currentUser &&
     (currentUser.role === 'admin' || currentUser.role === 'moderator' || currentUser.role === 'owner');
 
-  // Загрузка артистов и треков чарта
+  // Загрузка артистов, треков и жанрового словаря
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [artistsRes, tracksRes] = await Promise.all([
+      const [artistsRes, tracksRes, genresRes] = await Promise.all([
         apiClient.request('/api/artists'),
         apiClient.request('/api/charts/tracks'),
+        apiClient.getGenres(),
       ]);
       if (artistsRes?.data) setArtists(artistsRes.data);
       if (tracksRes?.data) setTopTracks(tracksRes.data);
+      if (genresRes?.data) setGenresList(genresRes.data);
     } catch (e) {
       console.error('Ошибка загрузки данных:', e);
     } finally {
@@ -61,7 +62,22 @@ export default function Content() {
     fetchData();
   }, []);
 
-  // Закрытие выпадающего списка при клике вне области поиска
+  // Преобразование ключей или строки жанров в русские наименования
+  const formatGenresToRu = (artist) => {
+    const rawList = Array.isArray(artist.genres) && artist.genres.length > 0
+      ? artist.genres
+      : (artist.genre ? artist.genre.split(',').map((s) => s.trim()) : []);
+
+    if (rawList.length === 0) return '';
+
+    return rawList
+      .map((key) => {
+        const found = genresList.find((g) => g.key === key);
+        return found ? found.title_ru : key;
+      })
+      .join(', ');
+  };
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -75,7 +91,6 @@ export default function Content() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Задержка поискового запроса
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchQuery);
@@ -83,16 +98,16 @@ export default function Content() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Результаты поиска по артистам и трекам
   const searchResults = useMemo(() => {
     const query = debouncedQuery.trim().toLowerCase();
     if (!query) return { artists: [], tracks: [] };
 
-    const matchedArtists = artists.filter(
-      (a) =>
-        (a.name && a.name.toLowerCase().includes(query)) ||
-        (a.genre && a.genre.toLowerCase().includes(query)),
-    );
+    const matchedArtists = artists.filter((a) => {
+      const nameMatch = a.name && a.name.toLowerCase().includes(query);
+      const genreString = formatGenresToRu(a).toLowerCase();
+      const rawGenreMatch = a.genre && a.genre.toLowerCase().includes(query);
+      return Boolean(nameMatch || genreString.includes(query) || rawGenreMatch);
+    });
 
     const matchedTracks = topTracks.filter((t) => {
       const titleMatch = t.title && t.title.toLowerCase().includes(query);
@@ -110,9 +125,8 @@ export default function Content() {
     });
 
     return { artists: matchedArtists, tracks: matchedTracks };
-  }, [debouncedQuery, artists, topTracks]);
+  }, [debouncedQuery, artists, topTracks, genresList]);
 
-  // Удаление артиста
   const handleDeleteArtist = async (e, artistId) => {
     e.stopPropagation();
     if (!window.confirm('Удалить этого исполнителя?')) return;
@@ -148,7 +162,6 @@ export default function Content() {
       />
 
       <div className="content-page">
-        {/* Панель поиска */}
         <div className="content-search" ref={searchContainerRef}>
           <div className="search-bar-wrapper">
             <InputField
@@ -168,7 +181,6 @@ export default function Content() {
               leftIcon={<img src={searchIcon} alt="Поиск" />}
             />
 
-            {/* Выпадающий список результатов поиска */}
             {isDropdownOpen && (
               <div
                 className="search-dropdown-menu"
@@ -180,7 +192,6 @@ export default function Content() {
                   </div>
                 ) : (
                   <>
-                    {/* Результаты по трекам */}
                     {searchResults.tracks.length > 0 && (
                       <div className="search-category-group">
                         <div className="search-category-header">
@@ -251,7 +262,6 @@ export default function Content() {
                       </div>
                     )}
 
-                    {/* Результаты по исполнителям */}
                     {searchResults.artists.length > 0 && (
                       <div className="search-category-group">
                         <div className="search-category-header">
@@ -280,7 +290,7 @@ export default function Content() {
                                   {artist.name}
                                 </span>
                                 <span className="search-artist-genre">
-                                  {artist.genre}
+                                  {formatGenresToRu(artist)}
                                 </span>
                               </div>
                               <span className="search-badge">Исполнитель</span>
@@ -297,7 +307,6 @@ export default function Content() {
         </div>
 
         <div className="content-container">
-          {/* Панель действий */}
           <div className="content-actions-panel">
             {currentUser && (
               <>
@@ -326,7 +335,6 @@ export default function Content() {
           </div>
 
           <div className="artists-catalog-section">
-            {/* Секция чарта треков */}
             <div>
               <div className="chart-header-row">
                 <h2 className="section-heading section-heading-flush">
@@ -369,11 +377,20 @@ export default function Content() {
               )}
             </div>
 
-            {/* Секция популярных исполнителей */}
             <div>
-              <h2 className="section-heading section-heading-spaced">
-                Популярные исполнители
-              </h2>
+              <div className="chart-header-row" style={{ marginTop: '30px' }}>
+                <h2 className="section-heading section-heading-flush">
+                  Популярные исполнители
+                </h2>
+                <button
+                  type="button"
+                  className="chart-filter-btn active"
+                  onClick={() => navigate('/artists')}
+                >
+                  Смотреть всё
+                </button>
+              </div>
+
               {loading ? (
                 <p className="status-message">Загрузка каталога...</p>
               ) : artists.length === 0 ? (
@@ -382,7 +399,7 @@ export default function Content() {
                 </p>
               ) : (
                 <div className="artists-grid">
-                  {artists.map((artist) => (
+                  {artists.slice(0, 6).map((artist) => (
                     <div
                       key={artist.id}
                       className="artist-card"
@@ -419,7 +436,7 @@ export default function Content() {
                       <div className="artist-card-info">
                         <h3 className="artist-card-name">{artist.name}</h3>
                         <span className="artist-card-genre">
-                          {artist.genre}
+                          {formatGenresToRu(artist)}
                         </span>
                         <span className="artist-card-plays">
                           {artist.plays_count || 0} прослушиваний

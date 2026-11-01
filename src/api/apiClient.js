@@ -298,4 +298,44 @@ export const apiClient = {
       data: { role: newRole },
     });
   },
+
+  // Методы работы с жанрами
+  async getGenres() {
+    return await this.request('/api/genres', {
+      method: 'GET',
+    });
+  },
+
+  async createGenre(genreData) {
+    return await this.request('/api/genres', {
+      method: 'POST',
+      requireAuth: true,
+      data: genreData,
+    });
+  },
+
+  async updateGenre(genreId, genreData) {
+    return await this.request(`/api/genres/${genreId}`, {
+      method: 'PUT',
+      requireAuth: true,
+      data: genreData,
+    });
+  },
+
+  async deleteGenre(genreId) {
+    return await this.request(`/api/genres/${genreId}`, {
+      method: 'DELETE',
+      requireAuth: true,
+    });
+  },
+
+  // Получение каталога артистов с фильтрами
+  async getArtists(params = {}) {
+    const searchParams = new URLSearchParams();
+    if (params.genre) searchParams.set('genre', params.genre);
+    if (params.search) searchParams.set('search', params.search);
+    const qs = searchParams.toString();
+    const url = qs ? `/api/artists?${qs}` : '/api/artists';
+    return await this.request(url, { method: 'GET' });
+  },
 };

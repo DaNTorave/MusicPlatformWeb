@@ -65,6 +65,14 @@ export default function ArtistPage() {
     fetchArtist();
   }, [id]);
 
+  const [genresList, setGenresList] = useState([]);
+
+  useEffect(() => {
+    apiClient.getGenres().then((res) => {
+      if (res?.data) setGenresList(res.data);
+    }).catch(() => {});
+  }, []);
+
   // Удаление артиста
   const handleDeleteArtist = async () => {
     if (!window.confirm('Удалить исполнителя и все его релизы?')) return;
@@ -252,7 +260,16 @@ export default function ArtistPage() {
           <span className="artist-tag">Исполнитель</span>
           <h1 className="artist-title">{artist.name}</h1>
           <div className="artist-meta">
-            <p className="artist-meta-string">Жанр: {artist.genre}</p>
+            <p className="artist-meta-string">
+              Жанр: {
+                (Array.isArray(artist.genres) && artist.genres.length > 0
+                  ? artist.genres
+                  : (artist.genre ? artist.genre.split(',').map((s) => s.trim()) : [])
+                )
+                  .map((k) => genresList.find((g) => g.key === k)?.title_ru || k)
+                  .join(', ')
+              }
+            </p>
             <p className="artist-meta-string">
               Прослушиваний: {artist.plays_count || 0}
             </p>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAudioPlayer } from '../context/AudioContext';
 import { apiClient } from '../api/apiClient';
 
@@ -15,7 +15,6 @@ import alertIcon from '../assets/alert-circle.svg';
 
 import '../styles/ModerationModal.css';
 
-// Готовые типовые шаблоны причин отклонения
 const COMMON_REJECT_REASONS = [
   'Низкое качество аудиофайла (присутствуют шумы, низкий битрейт)',
 ];
@@ -39,10 +38,13 @@ export default function ModerationModal({
   const [availableTracks, setAvailableTracks] = useState([]);
   const [collaborators, setCollaborators] = useState([]);
 
-  // Режим содержимого внутри единого модального окна: 'review' (проверка) или 'reject' (ввод причины отклонения)
+  // Управление жанрами при модерации артиста
+  const [availableGenres, setAvailableGenres] = useState([]);
+  const [selectedGenres, setSelectedGenres] = useState([]);
+  const [genreSearch, setGenreSearch] = useState('');
+
   const [moderationMode, setModerationMode] = useState('review');
 
-  // Состояния для кавера и возрастного ограничения
   const [isCover, setIsCover] = useState(false);
   const [originalTrackId, setOriginalTrackId] = useState(null);
   const [isAgeRestricted, setIsAgeRestricted] = useState(false);
@@ -56,20 +58,22 @@ export default function ModerationModal({
     stopPlayer,
   } = useAudioPlayer();
 
-  // Загрузка списков артистов и треков при открытии
   useEffect(() => {
     if (isOpen) {
       setModerationMode('review');
+      setGenreSearch('');
       apiClient.request('/api/artists').then((res) => {
         if (res?.data) setAvailableArtists(res.data);
       }).catch(() => {});
       apiClient.request('/api/charts/tracks').then((res) => {
         if (res?.data) setAvailableTracks(res.data);
       }).catch(() => {});
+      apiClient.getGenres().then((res) => {
+        if (res?.data) setAvailableGenres(res.data);
+      }).catch(() => {});
     }
   }, [isOpen]);
 
-  // Заполнение полей при изменении item
   useEffect(() => {
     if (item) {
       setTitle(item.title || item.name || '');
@@ -79,6 +83,18 @@ export default function ModerationModal({
       setCoverFile(null);
       setAudioFile(null);
       setModerationMode('review');
+      setGenreSearch('');
+
+      // Инициализация выбранных жанров
+      if (item.type === 'artist') {
+        const rawList = Array.isArray(item.genres) && item.genres.length > 0
+          ? item.genres
+          : (item.genre ? item.genre.split(',').map((s) => s.trim()) : []);
+        setSelectedGenres(rawList);
+      } else {
+        setSelectedGenres([]);
+      }
+
       setTracks(
         (item.tracks || []).map((t, idx) => ({
           ...t,
@@ -104,9 +120,26 @@ export default function ModerationModal({
     }
   }, [item]);
 
+  const filteredGenres = useMemo(() => {
+    const q = genreSearch.trim().toLowerCase();
+    if (!q) return availableGenres;
+    return availableGenres.filter(
+      (g) =>
+        (g.title_ru && g.title_ru.toLowerCase().includes(q)) ||
+        (g.key && g.key.toLowerCase().includes(q))
+    );
+  }, [availableGenres, genreSearch]);
+
   if (!isOpen || !item) return null;
 
-  // Обработчик смены обложки
+  const handleToggleGenre = (genreKey) => {
+    setSelectedGenres((prev) =>
+      prev.includes(genreKey)
+        ? prev.filter((k) => k !== genreKey)
+        : [...prev, genreKey]
+    );
+  };
+
   const handleCoverChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -124,14 +157,12 @@ export default function ModerationModal({
     }
   };
 
-  // Изменение названия одиночного трека
   const handleSingleTitleChange = (e) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
     if (currentTrack?.id === item.id) updateTrackTitle(newTitle);
   };
 
-  // Изменение поля трека в альбоме
   const handleTrackChange = (index, field, value) => {
     const track = tracks[index];
     setTracks((prev) => {
@@ -145,7 +176,6 @@ export default function ModerationModal({
     }
   };
 
-  // Перемещение трека вверх или вниз
   const moveTrack = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= tracks.length) return;
     setTracks((prev) => {
@@ -156,12 +186,10 @@ export default function ModerationModal({
     });
   };
 
-  // Удаление трека из списка
   const handleRemoveTrack = (index) => {
     setTracks((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Воспроизведение одиночного трека
   const handlePlaySingle = () => {
     playTrack({
       id: item.id,
@@ -176,7 +204,6 @@ export default function ModerationModal({
     });
   };
 
-  // Воспроизведение трека из альбома
   const handlePlayAlbumTrack = (track) => {
     playTrack({
       id: track.id,
@@ -191,7 +218,6 @@ export default function ModerationModal({
     });
   };
 
-  // Отправка решения модератора
   const handleSubmit = (action, customReason = null) => {
     stopPlayer();
     const schemaType =
@@ -211,6 +237,12 @@ export default function ModerationModal({
     if (coverFile) formData.append('cover', coverFile);
     if (audioFile) formData.append('audio', audioFile);
 
+    // Добавление отредактированных жанров для артиста
+    if (schemaType === 'artist') {
+      formData.append('genre', selectedGenres.join(', '));
+      selectedGenres.forEach((g) => formData.append('genres[]', g));
+    }
+
     if (schemaType === 'track') {
       formData.append('is_cover', isCover ? 'true' : 'false');
       formData.append('position', '1');
@@ -225,7 +257,6 @@ export default function ModerationModal({
 
     collaborators.forEach((id) => formData.append('collaborator_ids[]', String(id)));
 
-    // Для альбома добавляются все треки
     if (item.type === 'album') {
       tracks.forEach((track, idx) => {
         if (track.id) formData.append(`tracks[${idx}][id]`, String(track.id));
@@ -254,7 +285,6 @@ export default function ModerationModal({
       });
     }
 
-    // Добавление причины отклонения при отклонении
     if (action === 'reject') {
       const finalReason = customReason || rejectReason || 'Отклонено модератором';
       formData.append('status', 'rejected');
@@ -269,11 +299,16 @@ export default function ModerationModal({
 
   const isSingleAudio = item.type === 'track' || item.type === 'single';
   const isAlbum = item.type === 'album';
+  const isArtist = item.type === 'artist';
   const isSinglePlaying = currentTrack?.id === item.id && isPlaying;
 
   const isApproveDisabled = (() => {
     if (loading) return true;
     if (!title.trim()) return true;
+
+    if (isArtist) {
+      if (selectedGenres.length === 0) return true;
+    }
 
     if (isSingleAudio) {
       if (isCover && !originalTrackId) return true;
@@ -298,7 +333,6 @@ export default function ModerationModal({
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="modal-window moderation-modal">
-        {/* Шапка единого модального окна */}
         <div className="modal-window-top-buttons">
           {moderationMode === 'review' ? (
             <button type="button" className="modal-window-top-button active">
@@ -330,7 +364,6 @@ export default function ModerationModal({
         </div>
 
         <div className="modal-window-content">
-          {/* ЭКРАН 1: Проверка и редактирование параметров */}
           {moderationMode === 'review' && (
             <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
               <div className="moderation-preview">
@@ -348,7 +381,9 @@ export default function ModerationModal({
               </div>
 
               <div className="auth-form-group">
-                <label>{isAlbum ? 'Название альбома' : 'Название'} *</label>
+                <label>
+                  {isArtist ? 'Имя исполнителя' : isAlbum ? 'Название альбома' : 'Название'} *
+                </label>
                 <input
                   type="text"
                   value={title}
@@ -359,7 +394,54 @@ export default function ModerationModal({
                 />
               </div>
 
-              {item.type !== 'artist' && (
+              {/* Блок редактирования жанров артиста на модерации */}
+              {isArtist && (
+                <div className="auth-form-group">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ margin: 0 }}>Жанры исполнителя *</label>
+                    {selectedGenres.length > 0 && (
+                      <span style={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: 600 }}>
+                        Выбрано: {selectedGenres.length}
+                      </span>
+                    )}
+                  </div>
+
+                  <input
+                    type="text"
+                    className="input-element"
+                    placeholder="Поиск жанра по названию..."
+                    value={genreSearch}
+                    onChange={(e) => setGenreSearch(e.target.value)}
+                    disabled={loading}
+                    style={{ marginBottom: '8px' }}
+                  />
+
+                  <div className="genres-selector-list">
+                    {filteredGenres.length === 0 ? (
+                      <div style={{ padding: '8px', color: '#94a3b8', fontSize: '0.85rem' }}>
+                        Жанр не найден
+                      </div>
+                    ) : (
+                      filteredGenres.map((g) => {
+                        const isSelected = selectedGenres.includes(g.key);
+                        return (
+                          <button
+                            key={g.key}
+                            type="button"
+                            className={`genre-chip-btn ${isSelected ? 'active' : ''}`}
+                            onClick={() => handleToggleGenre(g.key)}
+                            disabled={loading}
+                          >
+                            {g.title_ru}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {!isArtist && (
                 <div className="auth-form-group">
                   <label>Год выпуска</label>
                   <input
@@ -476,7 +558,6 @@ export default function ModerationModal({
                 </div>
               )}
 
-              {/* Действия модератора */}
               <div className="moderation-actions">
                 <Button
                   type="button"
@@ -499,7 +580,6 @@ export default function ModerationModal({
             </form>
           )}
 
-          {/* ЭКРАН 2: Указание причины отклонения (внутри этого же модального окна) */}
           {moderationMode === 'reject' && (
             <div className="auth-form">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b91c1c' }}>
@@ -521,7 +601,6 @@ export default function ModerationModal({
                 Автор получит уведомление с точной причиной отклонения релиза <strong>«{title || item.title || item.name}»</strong>:
               </p>
 
-              {/* Готовые шаблоны причин */}
               <div>
                 <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#64748b', display: 'block', marginBottom: '6px' }}>
                   Готовые шаблоны:

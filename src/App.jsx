@@ -15,6 +15,8 @@ import GlobalPlayer from './components/GlobalPlayer';
 import FavoritesPage from './containers/FavoritesPage';
 import PlaylistsPage from './containers/PlaylistsPage';
 import PlaylistPage from './containers/PlaylistPage';
+import ArtistsPage from './containers/ArtistsPage';
+import GenresPage from './containers/GenresPage';
 
 import './styles/App.css';
 import { FavoritesProvider } from './context/FavoritesContext';
@@ -53,6 +55,7 @@ function AppLayout() {
       <main style={{ paddingBottom: isPlayerPage ? '0' : '90px' }}>
         <Routes>
           <Route path="/" element={<Content />} />
+          <Route path="/artists" element={<ArtistsPage />} />
           <Route path="/artists/:id/*" element={<ArtistPage />} />
           <Route path="/albums/:id" element={<AlbumPage />} />
           <Route path="/tracks/:id" element={<TrackPage />} />
@@ -60,6 +63,7 @@ function AppLayout() {
           <Route path="/profile/:id" element={<ProfilePage />} />
           <Route path="/moderation" element={<ModerationPage />} />
           <Route path="/roles" element={<RolesPage />} />
+          <Route path="/genres" element={<GenresPage />} />
           <Route path="/player" element={<PlayerPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/playlists" element={<PlaylistsPage />} />
