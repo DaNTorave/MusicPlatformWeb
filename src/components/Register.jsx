@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useMutation } from '../hooks/useApi';
 import { apiClient } from '../api/apiClient';
+import { PreferencesFormContent } from './PreferencesStepModal';
+
 import google_logo from '../assets/google.svg';
 import github_logo from '../assets/github.svg';
 import eye from '../assets/eye.svg';
@@ -9,6 +11,9 @@ import eye_crossed from '../assets/eye-crossed.svg';
 import '../styles/Register.css';
 
 export default function Register({ onSuccess, onSwitchToLogin }) {
+  // Режим шага формы: ввод данных учетной записи или выбор предпочтений
+  const [step, setStep] = useState('credentials'); // 'credentials' | 'preferences'
+
   // Состояния полей формы
   const [login, setLogin] = useState('');
   const [email, setEmail] = useState('');
@@ -19,6 +24,10 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [fieldError, setFieldError] = useState('');
   const [isRegistrationComplete, setIsRegistrationComplete] = useState(false);
+
+  // Выбранные предпочтения
+  const [preferredGenres, setPreferredGenres] = useState([]);
+  const [preferredArtistIds, setPreferredArtistIds] = useState([]);
 
   // Ошибки валидации по полям
   const [errors, setErrors] = useState({
@@ -33,8 +42,6 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
   const { mutate, loading } = useMutation('/api/register', {
     method: 'POST',
     onSuccess: async (data) => {
-      console.log('Регистрация успешна:', data);
-
       try {
         setIsRegistrationComplete(true);
 
@@ -43,24 +50,20 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
           password: password,
         };
 
-        const loginResponse = await apiClient.login(loginData);
-
-        console.log('Автоматический вход выполнен:', loginResponse);
+        await apiClient.login(loginData);
 
         if (onSuccess) {
           onSuccess();
         }
       } catch (loginError) {
-        console.error('Автоматический вход не удался:', loginError);
         if (onSuccess) {
           onSuccess();
         }
       }
     },
     onError: (err) => {
-      console.error('Ошибка регистрации:', err);
+      setStep('credentials');
 
-      // Обработка ошибок валидации с сервера
       if (err.status === 400) {
         if (err.data?.errors) {
           const serverErrors = err.data.errors;
@@ -198,15 +201,14 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
     const error = validateField(field, value);
     setErrors((prev) => ({ ...prev, [field]: error }));
 
-    // Перепроверка подтверждения при изменении пароля
     if (field === 'password' && confirmPassword) {
       const confirmError = validateField('confirmPassword', confirmPassword);
       setErrors((prev) => ({ ...prev, confirmPassword: confirmError }));
     }
   };
 
-  // Отправка формы регистрации
-  const handleSubmit = (e) => {
+  // Переход к выбору предпочтений
+  const handleProceedToPreferences = (e) => {
     e.preventDefault();
     setFieldError('');
 
@@ -235,11 +237,21 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
       return;
     }
 
+    setStep('preferences');
+  };
+
+  // Финальная отправка формы регистрации с предпочтениями
+  const handleCompleteRegistration = (genres, artistIds) => {
+    setPreferredGenres(genres);
+    setPreferredArtistIds(artistIds);
+
     const registrationData = {
       login: login.trim(),
       email: email.trim(),
       nickname: nickname.trim(),
       password: password,
+      preferred_genres: genres,
+      preferred_artist_ids: artistIds,
     };
 
     mutate(registrationData);
@@ -254,10 +266,7 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
   const passwordStrength = getPasswordStrength(password);
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit}>
-      <h2 className="auth-form-title">Создать аккаунт</h2>
-      <p className="auth-form-subtitle">Присоединяйтесь к нам</p>
-
+    <div className="auth-form-wrapper">
       {fieldError && (
         <div className="auth-error-global" role="alert">
           {fieldError}
@@ -266,189 +275,195 @@ export default function Register({ onSuccess, onSwitchToLogin }) {
 
       {isRegistrationComplete && (
         <div className="auth-success-global" role="alert">
-          Регистрация успешна! Выполняется вход...
+          Регистрация успешна. Выполняется вход...
         </div>
       )}
 
-      <div className="auth-form-group">
-        <label htmlFor="register-login">
-          Логин <span className="required-star">*</span>
-        </label>
-        <input
-          id="register-login"
-          type="text"
-          placeholder="Введите логин"
-          value={login}
-          onChange={(e) => handleFieldChange('login', e.target.value)}
-          required
-          disabled={loading}
-          className={errors.login ? 'error' : ''}
-        />
-        {errors.login && <span className="auth-error">{errors.login}</span>}
-      </div>
+      {step === 'credentials' ? (
+        <form className="auth-form" onSubmit={handleProceedToPreferences}>
+          <h2 className="auth-form-title">Создать аккаунт</h2>
+          <p className="auth-form-subtitle">Заполните регистрационные данные</p>
 
-      <div className="auth-form-group">
-        <label htmlFor="register-email">
-          Email <span className="required-star">*</span>
-        </label>
-        <input
-          id="register-email"
-          type="email"
-          placeholder="example@mail.com"
-          value={email}
-          onChange={(e) => handleFieldChange('email', e.target.value)}
-          required
-          disabled={loading}
-          className={errors.email ? 'error' : ''}
-        />
-        {errors.email && <span className="auth-error">{errors.email}</span>}
-      </div>
-
-      <div className="auth-form-group">
-        <label htmlFor="register-nickname">
-          Никнейм <span className="optional-label">(необязательно)</span>
-        </label>
-        <input
-          id="register-nickname"
-          type="text"
-          placeholder="Введите никнейм"
-          value={nickname}
-          onChange={(e) => handleFieldChange('nickname', e.target.value)}
-          disabled={loading}
-          className={errors.nickname ? 'error' : ''}
-        />
-        {errors.nickname && (
-          <span className="auth-error">{errors.nickname}</span>
-        )}
-      </div>
-
-      <div className="auth-form-group">
-        <label htmlFor="register-password">
-          Пароль <span className="required-star">*</span>
-        </label>
-        <div className="password-input-wrapper">
-          <input
-            id="register-password"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Минимум 8 символов"
-            value={password}
-            onChange={(e) => handleFieldChange('password', e.target.value)}
-            required
-            minLength={8}
-            disabled={loading}
-            className={errors.password ? 'error' : ''}
-          />
-          <button
-            type="button"
-            className="password-toggle"
-            onClick={() => setShowPassword(!showPassword)}
-            tabIndex="-1"
-            disabled={loading}
-          >
-            <img
-              className="password-toggle-icon"
-              src={showPassword ? eye_crossed : eye}
-              alt={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+          <div className="auth-form-group">
+            <label htmlFor="register-login">
+              Логин <span className="required-star">*</span>
+            </label>
+            <input
+              id="register-login"
+              type="text"
+              placeholder="Введите логин"
+              value={login}
+              onChange={(e) => handleFieldChange('login', e.target.value)}
+              required
+              disabled={loading}
+              className={errors.login ? 'error' : ''}
             />
-          </button>
-        </div>
-        {errors.password && (
-          <span className="auth-error">{errors.password}</span>
-        )}
-        {password && !errors.password && passwordStrength && (
-          <div className="password-strength">
-            <div
-              className={`password-strength-bar ${passwordStrength.class}`}
-            ></div>
-            <span
-              className={`password-strength-text ${passwordStrength.class}`}
-            >
-              {passwordStrength.label}
-            </span>
+            {errors.login && <span className="auth-error">{errors.login}</span>}
           </div>
-        )}
-      </div>
 
-      <div className="auth-form-group">
-        <label htmlFor="register-confirm-password">
-          Подтверждение пароля <span className="required-star">*</span>
-        </label>
-        <div className="password-input-wrapper">
-          <input
-            id="register-confirm-password"
-            type={showConfirmPassword ? 'text' : 'password'}
-            placeholder="Повторите пароль"
-            value={confirmPassword}
-            onChange={(e) =>
-              handleFieldChange('confirmPassword', e.target.value)
-            }
-            required
-            minLength={8}
-            disabled={loading}
-            className={errors.confirmPassword ? 'error' : ''}
-          />
-          <button
-            type="button"
-            className="password-toggle"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            tabIndex="-1"
-            disabled={loading}
-          >
-            <img
-              className="password-toggle-icon"
-              src={showConfirmPassword ? eye_crossed : eye}
-              alt={showConfirmPassword ? 'Скрыть пароль' : 'Показать пароль'}
+          <div className="auth-form-group">
+            <label htmlFor="register-email">
+              Email <span className="required-star">*</span>
+            </label>
+            <input
+              id="register-email"
+              type="email"
+              placeholder="example@mail.com"
+              value={email}
+              onChange={(e) => handleFieldChange('email', e.target.value)}
+              required
+              disabled={loading}
+              className={errors.email ? 'error' : ''}
             />
+            {errors.email && <span className="auth-error">{errors.email}</span>}
+          </div>
+
+          <div className="auth-form-group">
+            <label htmlFor="register-nickname">
+              Никнейм <span className="optional-label">(необязательно)</span>
+            </label>
+            <input
+              id="register-nickname"
+              type="text"
+              placeholder="Введите никнейм"
+              value={nickname}
+              onChange={(e) => handleFieldChange('nickname', e.target.value)}
+              disabled={loading}
+              className={errors.nickname ? 'error' : ''}
+            />
+            {errors.nickname && (
+              <span className="auth-error">{errors.nickname}</span>
+            )}
+          </div>
+
+          <div className="auth-form-group">
+            <label htmlFor="register-password">
+              Пароль <span className="required-star">*</span>
+            </label>
+            <div className="password-input-wrapper">
+              <input
+                id="register-password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Минимум 8 символов"
+                value={password}
+                onChange={(e) => handleFieldChange('password', e.target.value)}
+                required
+                minLength={8}
+                disabled={loading}
+                className={errors.password ? 'error' : ''}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex="-1"
+                disabled={loading}
+              >
+                <img
+                  className="password-toggle-icon"
+                  src={showPassword ? eye_crossed : eye}
+                  alt="Видимость пароля"
+                />
+              </button>
+            </div>
+            {errors.password && (
+              <span className="auth-error">{errors.password}</span>
+            )}
+            {password && !errors.password && passwordStrength && (
+              <div className="password-strength">
+                <div
+                  className={`password-strength-bar ${passwordStrength.class}`}
+                ></div>
+                <span
+                  className={`password-strength-text ${passwordStrength.class}`}
+                >
+                  {passwordStrength.label}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="auth-form-group">
+            <label htmlFor="register-confirm-password">
+              Подтверждение пароля <span className="required-star">*</span>
+            </label>
+            <div className="password-input-wrapper">
+              <input
+                id="register-confirm-password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                placeholder="Повторите пароль"
+                value={confirmPassword}
+                onChange={(e) =>
+                  handleFieldChange('confirmPassword', e.target.value)
+                }
+                required
+                minLength={8}
+                disabled={loading}
+                className={errors.confirmPassword ? 'error' : ''}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                tabIndex="-1"
+                disabled={loading}
+              >
+                <img
+                  className="password-toggle-icon"
+                  src={showConfirmPassword ? eye_crossed : eye}
+                  alt="Видимость пароля"
+                />
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <span className="auth-error">{errors.confirmPassword}</span>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            className="auth-submit-button"
+            disabled={loading || hasErrors || isFormEmpty}
+          >
+            Далее
           </button>
-        </div>
-        {errors.confirmPassword && (
-          <span className="auth-error">{errors.confirmPassword}</span>
-        )}
-      </div>
 
-      <button
-        type="submit"
-        className="auth-submit-button"
-        disabled={loading || hasErrors || isFormEmpty}
-      >
-        {loading ? (
-          <>
-            <span className="spinner"></span>
-            Регистрация...
-          </>
-        ) : (
-          'Зарегистрироваться'
-        )}
-      </button>
+          <div className="auth-divider">или</div>
 
-      <div className="auth-divider">или</div>
+          <div className="social-buttons">
+            <button
+              type="button"
+              className="social-button"
+              disabled={loading}
+              onClick={() => alert('Вход через Google')}
+            >
+              <img className="social-button-icon" src={google_logo} alt="Google" />
+              Google
+            </button>
+            <button
+              type="button"
+              className="social-button"
+              disabled={loading}
+              onClick={() => alert('Вход через GitHub')}
+            >
+              <img className="social-button-icon" src={github_logo} alt="GitHub" />
+              GitHub
+            </button>
+          </div>
 
-      <div className="social-buttons">
-        <button
-          type="button"
-          className="social-button"
-          disabled={loading}
-          onClick={() => alert('Тут могла быть ваша реклама')}
-        >
-          <img className="social-button-icon" src={google_logo} alt="Google" />
-          Google
-        </button>
-        <button
-          type="button"
-          className="social-button"
-          disabled={loading}
-          onClick={() =>
-            alert('Вааар Тандер - это многопользовательский онлайн экшен')
-          }
-        >
-          <img className="social-button-icon" src={github_logo} alt="GitHub" />
-          GitHub
-        </button>
-      </div>
-
-      <div className="auth-form-footer">
-        Уже есть аккаунт? <a onClick={onSwitchToLogin}>Войти</a>
-      </div>
-    </form>
+          <div className="auth-form-footer">
+            Уже есть аккаунт? <a onClick={onSwitchToLogin}>Войти</a>
+          </div>
+        </form>
+      ) : (
+        <PreferencesFormContent
+          initialGenres={preferredGenres}
+          initialArtistIds={preferredArtistIds}
+          onCancel={() => setStep('credentials')}
+          onComplete={handleCompleteRegistration}
+          submitLabel={loading ? 'Регистрация...' : 'Завершить регистрацию'}
+        />
+      )}
+    </div>
   );
 }

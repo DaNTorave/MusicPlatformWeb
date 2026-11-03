@@ -1,0 +1,70 @@
+.preferences-step-flow {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.preferences-step {
+  display: flex;
+  flex-direction: column;
+}
+
+.preferences-selector-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  margin-top: 12px;
+  padding: 4px;
+}
+
+.preferences-artists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+  max-height: 260px;
+  overflow-y: auto;
+  margin-top: 12px;
+  padding: 4px;
+}
+
+.preferences-artist-card {
+  cursor: pointer;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.preferences-artist-card:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.preferences-artist-card.is-selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+.preferences-artist-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 8px auto;
+  display: block;
+}
+
+.preferences-artist-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

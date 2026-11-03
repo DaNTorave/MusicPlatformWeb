@@ -338,4 +338,16 @@ export const apiClient = {
     const url = qs ? `/api/artists?${qs}` : '/api/artists';
     return await this.request(url, { method: 'GET' });
   },
+
+  // Обновление предпочитаемых жанров и исполнителей
+  async updatePreferences(preferredGenres, preferredArtistIds) {
+    return await this.request('/api/profile/preferences', {
+      method: 'PUT',
+      requireAuth: true,
+      data: {
+        preferred_genres: preferredGenres,
+        preferred_artist_ids: preferredArtistIds,
+      },
+    });
+  },
 };

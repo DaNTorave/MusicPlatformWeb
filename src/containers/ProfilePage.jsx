@@ -6,6 +6,7 @@ import { useAudioPlayer } from '../context/AudioContext';
 import ChangePasswordModal from '../components/ChangePasswordModal';
 import ChangeNicknameModal from '../components/ChangeNicknameModal';
 import PlaylistModal from '../components/PlaylistModal';
+import PreferencesStepModal from '../components/PreferencesStepModal';
 import TrackRow from '../components/TrackRow';
 import AgeBadge from '../components/AgeBadge';
 
@@ -29,6 +30,7 @@ export default function ProfilePage() {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
   const [isCreatePlaylistOpen, setIsCreatePlaylistOpen] = useState(false);
+  const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false);
 
   // Состояния избранных композиций и публичных плейлистов профиля
   const [favoriteTracks, setFavoriteTracks] = useState([]);
@@ -182,6 +184,21 @@ export default function ProfilePage() {
     }
   };
 
+  // Сохранение обновленных предпочтений
+  const handleSavePreferences = async (genres, artistIds) => {
+    try {
+      const res = await apiClient.updatePreferences(genres, artistIds);
+      if (res?.user) {
+        setUser((prev) => ({ ...prev, ...res.user }));
+        apiClient.setUser(res.user);
+        window.dispatchEvent(new CustomEvent('user:updated'));
+      }
+      setIsPreferencesModalOpen(false);
+    } catch (err) {
+      alert(err.data?.error || err.message || 'Ошибка сохранения предпочтений');
+    }
+  };
+
   // Воспроизведение плейлиста с карточки в профиле
   const handlePlayPlaylist = (e, playlist) => {
     e.stopPropagation();
@@ -225,6 +242,15 @@ export default function ProfilePage() {
         isOpen={isCreatePlaylistOpen}
         onClose={() => setIsCreatePlaylistOpen(false)}
         onSuccess={() => loadProfilePlaylists(user.id)}
+      />
+
+      <PreferencesStepModal
+        isOpen={isPreferencesModalOpen}
+        onClose={() => setIsPreferencesModalOpen(false)}
+        initialGenres={user.preferred_genres || []}
+        initialArtistIds={user.preferred_artist_ids || []}
+        onComplete={handleSavePreferences}
+        submitLabel="Сохранить предпочтения"
       />
 
       <div className="profile-container">
@@ -310,6 +336,13 @@ export default function ProfilePage() {
                     onClick={() => setIsPasswordModalOpen(true)}
                   >
                     Изменить пароль
+                  </button>
+                  <button
+                    type="button"
+                    className="profile-action-btn"
+                    onClick={() => setIsPreferencesModalOpen(true)}
+                  >
+                    Изменить предпочтения
                   </button>
                 </div>
               </>

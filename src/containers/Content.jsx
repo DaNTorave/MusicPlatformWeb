@@ -62,7 +62,6 @@ export default function Content() {
     fetchData();
   }, []);
 
-  // Преобразование ключей или строки жанров в русские наименования
   const formatGenresToRu = (artist) => {
     const rawList = Array.isArray(artist.genres) && artist.genres.length > 0
       ? artist.genres
@@ -70,12 +69,9 @@ export default function Content() {
 
     if (rawList.length === 0) return '';
 
-    return rawList
-      .map((key) => {
-        const found = genresList.find((g) => g.key === key);
-        return found ? found.title_ru : key;
-      })
-      .join(', ');
+    const firstGenreKey = rawList[0];
+    const found = genresList.find((g) => g.key === firstGenreKey);
+    return found ? found.title_ru : firstGenreKey;
   };
 
   useEffect(() => {
