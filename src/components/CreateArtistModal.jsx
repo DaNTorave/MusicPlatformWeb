@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { apiClient } from '../api/apiClient';
 
 import Button from './Button';
+import ImageCropModal from './ImageCropModal';
 import defaultAvatar from '../assets/Шотландская веслоухая.jpg';
 import closeIcon from '../assets/close-icon.svg';
 
@@ -17,6 +18,11 @@ export default function CreateArtistModal({ isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  // Состояние модального окна кадрирования
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [rawImageSrc, setRawImageSrc] = useState('');
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -43,12 +49,21 @@ export default function CreateArtistModal({ isOpen, onClose, onSuccess }) {
 
   if (!isOpen) return null;
 
+  // Выбор файла и открытие кадрирования
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setAvatar(file);
-      setAvatarPreview(URL.createObjectURL(file));
+      const objectUrl = URL.createObjectURL(file);
+      setRawImageSrc(objectUrl);
+      setCropModalOpen(true);
     }
+    e.target.value = '';
+  };
+
+  // Завершение кадрирования аватара
+  const handleCropComplete = (croppedFile, previewUrl) => {
+    setAvatar(croppedFile);
+    setAvatarPreview(previewUrl);
   };
 
   const handleToggleGenre = (genreKey) => {
@@ -65,6 +80,7 @@ export default function CreateArtistModal({ isOpen, onClose, onSuccess }) {
     setGenreSearch('');
     setAvatar(null);
     setAvatarPreview('');
+    setRawImageSrc('');
     setErrorMsg('');
     setSuccessMsg('');
   };
@@ -103,117 +119,146 @@ export default function CreateArtistModal({ isOpen, onClose, onSuccess }) {
   };
 
   return (
-    <div
-      className="modal-background"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div className="modal-window" style={{ maxWidth: '520px' }}>
-        <div className="modal-window-top-buttons">
-          <button type="button" className="modal-window-top-button active">
-            Новый исполнитель
-          </button>
-          <button
-            type="button"
-            className="modal-close-button"
-            onClick={onClose}
-          >
-            <img src={closeIcon} alt="Закрыть" />
-          </button>
-        </div>
+    <>
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={rawImageSrc}
+        cropShape="circle"
+        onClose={() => setCropModalOpen(false)}
+        onCropComplete={handleCropComplete}
+      />
 
-        <div className="modal-window-content">
-          <form className="auth-form" onSubmit={handleSubmit}>
-            {errorMsg && <div className="auth-error-global">{errorMsg}</div>}
-            {successMsg && (
-              <div className="auth-success-global">{successMsg}</div>
-            )}
-
-            <div className="avatar-preview-container">
-              <div className="avatar-preview-wrapper">
-                <img
-                  src={avatarPreview || defaultAvatar}
-                  alt="Предпросмотр аватара"
-                  className="avatar-preview-image circle"
-                />
-                <label className="avatar-preview-badge">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarChange}
-                    disabled={loading}
-                  />
-                  {avatarPreview ? 'Сменить' : 'Выбрать фото'}
-                </label>
-              </div>
-            </div>
-
-            <div className="auth-form-group">
-              <label>Имя исполнителя / Название группы *</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Например: Queen, Miyagi..."
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <div className="auth-form-group">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <label style={{ margin: 0 }}>Жанры артиста *</label>
-                {selectedGenres.length > 0 && (
-                  <span style={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: 600 }}>
-                    Выбрано: {selectedGenres.length}
-                  </span>
-                )}
-              </div>
-
-              {/* Поле поиска по названию жанра */}
-              <input
-                type="text"
-                className="input-element"
-                placeholder="Поиск жанра по названию..."
-                value={genreSearch}
-                onChange={(e) => setGenreSearch(e.target.value)}
-                disabled={loading}
-                style={{ marginBottom: '8px' }}
-              />
-
-              <div className="genres-selector-list">
-                {filteredGenres.length === 0 ? (
-                  <div style={{ padding: '8px', color: '#94a3b8', fontSize: '0.85rem' }}>
-                    Жанр не найден
-                  </div>
-                ) : (
-                  filteredGenres.map((g) => {
-                    const isSelected = selectedGenres.includes(g.key);
-                    return (
-                      <button
-                        key={g.key}
-                        type="button"
-                        className={`genre-chip-btn ${isSelected ? 'active' : ''}`}
-                        onClick={() => handleToggleGenre(g.key)}
-                        disabled={loading}
-                      >
-                        {g.title_ru}
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={loading || !name.trim() || selectedGenres.length === 0}
+      <div
+        className="modal-background"
+        onClick={(e) => e.target === e.currentTarget && onClose()}
+      >
+        <div className="modal-window" style={{ maxWidth: '520px' }}>
+          <div className="modal-window-top-buttons">
+            <button type="button" className="modal-window-top-button active">
+              Новый исполнитель
+            </button>
+            <button
+              type="button"
+              className="modal-close-button"
+              onClick={onClose}
             >
-              {loading ? 'Создание...' : 'Отправить на модерацию'}
-            </Button>
-          </form>
+              <img src={closeIcon} alt="Закрыть" />
+            </button>
+          </div>
+
+          <div className="modal-window-content">
+            <form className="auth-form" onSubmit={handleSubmit}>
+              {errorMsg && <div className="auth-error-global">{errorMsg}</div>}
+              {successMsg && (
+                <div className="auth-success-global">{successMsg}</div>
+              )}
+
+              <div className="avatar-preview-container">
+                <div className="avatar-preview-wrapper">
+                  <img
+                    src={avatarPreview || defaultAvatar}
+                    alt="Предпросмотр аватара"
+                    className="avatar-preview-image circle"
+                  />
+                  <label className="avatar-preview-badge">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      disabled={loading}
+                    />
+                    {avatarPreview ? 'Сменить' : 'Выбрать фото'}
+                  </label>
+                </div>
+              </div>
+
+              <div className="auth-form-group">
+                <label>Имя исполнителя / Название группы *</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Например: Queen, Miyagi..."
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="auth-form-group">
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '6px',
+                  }}
+                >
+                  <label style={{ margin: 0 }}>Жанры артиста *</label>
+                  {selectedGenres.length > 0 && (
+                    <span
+                      style={{
+                        fontSize: '0.8rem',
+                        color: '#2563eb',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Выбрано: {selectedGenres.length}
+                    </span>
+                  )}
+                </div>
+
+                <input
+                  type="text"
+                  className="input-element"
+                  placeholder="Поиск жанра по названию..."
+                  value={genreSearch}
+                  onChange={(e) => setGenreSearch(e.target.value)}
+                  disabled={loading}
+                  style={{ marginBottom: '8px' }}
+                />
+
+                <div className="genres-selector-list">
+                  {filteredGenres.length === 0 ? (
+                    <div
+                      style={{
+                        padding: '8px',
+                        color: '#94a3b8',
+                        fontSize: '0.85rem',
+                      }}
+                    >
+                      Жанр не найден
+                    </div>
+                  ) : (
+                    filteredGenres.map((g) => {
+                      const isSelected = selectedGenres.includes(g.key);
+                      return (
+                        <button
+                          key={g.key}
+                          type="button"
+                          className={`genre-chip-btn ${isSelected ? 'active' : ''}`}
+                          onClick={() => handleToggleGenre(g.key)}
+                          disabled={loading}
+                        >
+                          {g.title_ru}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={loading || !name.trim() || selectedGenres.length === 0}
+              >
+                {loading ? 'Создание...' : 'Отправить на модерацию'}
+              </Button>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

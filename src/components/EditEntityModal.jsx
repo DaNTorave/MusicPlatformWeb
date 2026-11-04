@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { apiClient } from '../api/apiClient';
 
 import Button from './Button';
 import TrackSlotItem from './TrackSlotItem';
 import AgeRestrictionToggle from './AgeRestrictionToggle';
+import ImageCropModal from './ImageCropModal';
 
 import defaultCover from '../assets/Шотландская веслоухая.jpg';
 import closeIcon from '../assets/close-icon.svg';
@@ -17,7 +18,6 @@ export default function EditEntityModal({
   type,
   onSuccess,
 }) {
-  // Состояния для полей формы
   const [title, setTitle] = useState('');
   const [genre, setGenre] = useState('');
   const [coverFile, setCoverFile] = useState(null);
@@ -28,7 +28,11 @@ export default function EditEntityModal({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Заполнение полей при открытии и изменении item
+  // Состояния для кадрирования
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [rawImageSrc, setRawImageSrc] = useState('');
+  const fileInputRef = useRef(null);
+
   useEffect(() => {
     if (item) {
       setTitle(item.title || item.name || '');
@@ -38,10 +42,9 @@ export default function EditEntityModal({
       setAudioFile(null);
       setErrorMsg('');
       setAgeRestriction(
-        Boolean(item.age_restriction || item.has_age_restriction),
+        Boolean(item.age_restriction || item.has_age_restriction)
       );
 
-      // Для альбома формируется список треков
       if (type === 'album') {
         setTracks(
           (item.tracks || []).map((t) => ({
@@ -49,9 +52,9 @@ export default function EditEntityModal({
             title: t.title || '',
             audioFile: null,
             age_restriction: Boolean(
-              t.age_restriction || t.has_age_restriction,
+              t.age_restriction || t.has_age_restriction
             ),
-          })),
+          }))
         );
       }
     }
@@ -59,16 +62,22 @@ export default function EditEntityModal({
 
   if (!isOpen || !item) return null;
 
-  // Обработчик смены обложки
-  const handleCoverChange = (e) => {
+  // Обработчик выбора файла обложки
+  const handleCoverSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setCoverFile(file);
-      setCoverPreview(URL.createObjectURL(file));
+      setRawImageSrc(URL.createObjectURL(file));
+      setCropModalOpen(true);
     }
+    e.target.value = '';
   };
 
-  // Добавление нового слота трека в альбом
+  // Завершение кадрирования
+  const handleCropComplete = (croppedFile, previewUrl) => {
+    setCoverFile(croppedFile);
+    setCoverPreview(previewUrl);
+  };
+
   const handleAddTrackSlot = () => {
     setTracks((prev) => [
       ...prev,
@@ -76,12 +85,10 @@ export default function EditEntityModal({
     ]);
   };
 
-  // Удаление трека из списка
   const handleRemoveTrack = (index) => {
     setTracks((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Изменение поля трека
   const handleTrackChange = (index, field, value) => {
     setTracks((prev) => {
       const copy = [...prev];
@@ -93,7 +100,6 @@ export default function EditEntityModal({
     });
   };
 
-  // Перемещение трека вверх или вниз
   const moveTrack = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= tracks.length) return;
     setTracks((prev) => {
@@ -104,7 +110,6 @@ export default function EditEntityModal({
     });
   };
 
-  // Отправка формы редактирования
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -126,21 +131,20 @@ export default function EditEntityModal({
         formData.append('audio', audioFile);
       }
       if (type === 'track') {
-        formData.append(
-          'age_restriction',
-          ageRestriction ? 'true' : 'false',
-        );
+        formData.append('age_restriction', ageRestriction ? 'true' : 'false');
       }
 
-      // Для альбома добавляются все треки
       if (type === 'album') {
         tracks.forEach((track, idx) => {
           if (track.id) formData.append(`tracks[${idx}][id]`, track.id);
           formData.append(`tracks[${idx}][title]`, track.title);
-          formData.append(`tracks[${idx}][position]`, track.position || idx + 1);
+          formData.append(
+            `tracks[${idx}][position]`,
+            track.position || idx + 1
+          );
           formData.append(
             `tracks[${idx}][age_restriction]`,
-            track.age_restriction ? 'true' : 'false',
+            track.age_restriction ? 'true' : 'false'
           );
           if (track.audioFile) {
             formData.append(`tracks[${idx}][audio]`, track.audioFile);
@@ -153,14 +157,13 @@ export default function EditEntityModal({
       onClose();
     } catch (err) {
       setErrorMsg(
-        err.data?.error || err.message || 'Ошибка сохранения изменений',
+        err.data?.error || err.message || 'Ошибка сохранения изменений'
       );
     } finally {
       setLoading(false);
     }
   };
 
-  // Заголовок модального окна в зависимости от типа
   const getModalTitle = () => {
     switch (type) {
       case 'artist':
@@ -175,143 +178,154 @@ export default function EditEntityModal({
   };
 
   return (
-    <div
-      className="modal-background"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
+    <>
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={rawImageSrc}
+        cropShape={type === 'artist' ? 'circle' : 'square'}
+        onClose={() => setCropModalOpen(false)}
+        onCropComplete={handleCropComplete}
+      />
+
       <div
-        className={`modal-window ${type === 'album' ? 'modal-window-wide' : 'modal-window-narrow'}`}
+        className="modal-background"
+        onClick={(e) => e.target === e.currentTarget && onClose()}
       >
-        <div className="modal-window-top-buttons">
-          <button type="button" className="modal-window-top-button active">
-            {getModalTitle()}
-          </button>
-          <button
-            type="button"
-            className="modal-close-button"
-            onClick={onClose}
-          >
-            <img src={closeIcon} alt="Закрыть" />
-          </button>
-        </div>
+        <div
+          className={`modal-window ${type === 'album' ? 'modal-window-wide' : 'modal-window-narrow'}`}
+        >
+          <div className="modal-window-top-buttons">
+            <button type="button" className="modal-window-top-button active">
+              {getModalTitle()}
+            </button>
+            <button
+              type="button"
+              className="modal-close-button"
+              onClick={onClose}
+            >
+              <img src={closeIcon} alt="Закрыть" />
+            </button>
+          </div>
 
-        <div className="modal-window-content modal-window-content-scroll">
-          <form className="auth-form" onSubmit={handleSubmit}>
-            {errorMsg && <div className="auth-error-global">{errorMsg}</div>}
+          <div className="modal-window-content modal-window-content-scroll">
+            <form className="auth-form" onSubmit={handleSubmit}>
+              {errorMsg && <div className="auth-error-global">{errorMsg}</div>}
 
-            <div className="avatar-preview-container">
-              <div className="avatar-preview-wrapper">
-                <img
-                  src={coverPreview || defaultCover}
-                  alt="cover"
-                  className={`avatar-preview-image ${type === 'artist' ? 'circle' : ''}`}
-                />
-                <label className="avatar-preview-badge">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleCoverChange}
+              <div className="avatar-preview-container">
+                <div className="avatar-preview-wrapper">
+                  <img
+                    src={coverPreview || defaultCover}
+                    alt="cover"
+                    className={`avatar-preview-image ${type === 'artist' ? 'circle' : ''}`}
                   />
-                  Сменить
-                </label>
+                  <label className="avatar-preview-badge">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCoverSelect}
+                    />
+                    Сменить
+                  </label>
+                </div>
               </div>
-            </div>
 
-            <div className="auth-form-group">
-              <label>
-                {type === 'artist' ? 'Имя исполнителя *' : 'Название *'}
-              </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-
-            {type === 'artist' && (
               <div className="auth-form-group">
-                <label>Основной жанр</label>
+                <label>
+                  {type === 'artist' ? 'Имя исполнителя *' : 'Название *'}
+                </label>
                 <input
                   type="text"
-                  value={genre}
-                  onChange={(e) => setGenre(e.target.value)}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
                   disabled={loading}
                 />
               </div>
-            )}
 
-            {type === 'track' && (
-              <div className="auth-form-group">
-                <label>Заменить аудиофайл (необязательно)</label>
-                <input
-                  type="file"
-                  accept="audio/*"
-                  onChange={(e) => setAudioFile(e.target.files[0])}
+              {type === 'artist' && (
+                <div className="auth-form-group">
+                  <label>Основной жанр</label>
+                  <input
+                    type="text"
+                    value={genre}
+                    onChange={(e) => setGenre(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+              )}
+
+              {type === 'track' && (
+                <div className="auth-form-group">
+                  <label>Заменить аудиофайл (необязательно)</label>
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    onChange={(e) => setAudioFile(e.target.files[0])}
+                    disabled={loading}
+                  />
+                </div>
+              )}
+
+              {type === 'track' && (
+                <AgeRestrictionToggle
+                  checked={ageRestriction}
+                  onChange={setAgeRestriction}
                   disabled={loading}
                 />
-              </div>
-            )}
+              )}
 
-            {type === 'track' && (
-              <AgeRestrictionToggle
-                checked={ageRestriction}
-                onChange={setAgeRestriction}
-                disabled={loading}
-              />
-            )}
+              {type === 'album' && (
+                <div className="auth-form-group">
+                  <div className="track-list-header">
+                    <label>Список треков ({tracks.length} шт.):</label>
+                    <button
+                      type="button"
+                      className="track-list-add-btn"
+                      onClick={handleAddTrackSlot}
+                    >
+                      + Добавить трек
+                    </button>
+                  </div>
 
-            {type === 'album' && (
-              <div className="auth-form-group">
-                <div className="track-list-header">
-                  <label>Список треков ({tracks.length} шт.):</label>
-                  <button
-                    type="button"
-                    className="track-list-add-btn"
-                    onClick={handleAddTrackSlot}
-                  >
-                    + Добавить трек
-                  </button>
+                  <div className="scrollable-track-list">
+                    {tracks.map((track, i) => (
+                      <TrackSlotItem
+                        key={track.id || `new-${i}`}
+                        index={i}
+                        track={track}
+                        total={tracks.length}
+                        onChange={handleTrackChange}
+                        onMove={moveTrack}
+                        onRemove={handleRemoveTrack}
+                        disabled={loading}
+                      />
+                    ))}
+                  </div>
                 </div>
+              )}
 
-                <div className="scrollable-track-list">
-                  {tracks.map((track, i) => (
-                    <TrackSlotItem
-                      key={track.id || `new-${i}`}
-                      index={i}
-                      track={track}
-                      total={tracks.length}
-                      onChange={handleTrackChange}
-                      onMove={moveTrack}
-                      onRemove={handleRemoveTrack}
-                      disabled={loading}
-                    />
-                  ))}
-                </div>
+              <div className="modal-actions-row">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={onClose}
+                  disabled={loading}
+                >
+                  Отмена
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={loading || !title.trim()}
+                >
+                  {loading ? 'Сохранение...' : 'Сохранить'}
+                </Button>
               </div>
-            )}
-
-            <div className="modal-actions-row">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={onClose}
-                disabled={loading}
-              >
-                Отмена
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={loading || !title.trim()}
-              >
-                {loading ? 'Сохранение...' : 'Сохранить'}
-              </Button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

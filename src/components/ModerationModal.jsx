@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAudioPlayer } from '../context/AudioContext';
 import { apiClient } from '../api/apiClient';
 
@@ -7,6 +7,7 @@ import TrackSlotItem from './TrackSlotItem';
 import CollaboratorsManager from './CollaboratorsManager';
 import OriginalTrackManager from './OriginalTrackManager';
 import AgeRestrictionToggle from './AgeRestrictionToggle';
+import ImageCropModal from './ImageCropModal';
 
 import playIcon from '../assets/play-icon.svg';
 import pauseIcon from '../assets/pause-icon.svg';
@@ -49,6 +50,11 @@ export default function ModerationModal({
   const [originalTrackId, setOriginalTrackId] = useState(null);
   const [isAgeRestricted, setIsAgeRestricted] = useState(false);
 
+  // Кадрирование обложки при модерации
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [rawImageSrc, setRawImageSrc] = useState('');
+  const coverInputRef = useRef(null);
+
   const {
     playTrack,
     currentTrack,
@@ -85,7 +91,6 @@ export default function ModerationModal({
       setModerationMode('review');
       setGenreSearch('');
 
-      // Инициализация выбранных жанров
       if (item.type === 'artist') {
         const rawList = Array.isArray(item.genres) && item.genres.length > 0
           ? item.genres
@@ -140,20 +145,27 @@ export default function ModerationModal({
     );
   };
 
-  const handleCoverChange = (e) => {
+  // Выбор файла обложки на модерации с открытием окна кадрирования
+  const handleCoverSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setCoverFile(file);
-      const previewUrl = URL.createObjectURL(file);
-      setCoverPreview(previewUrl);
+      setRawImageSrc(URL.createObjectURL(file));
+      setCropModalOpen(true);
+    }
+    e.target.value = '';
+  };
 
-      if (
-        currentTrack &&
-        (currentTrack.id === item.id ||
-          tracks.some((t) => t.id === currentTrack.id))
-      ) {
-        updateTrackCover(previewUrl);
-      }
+  // Завершение кадрирования в модерации
+  const handleCropComplete = (croppedFile, previewUrl) => {
+    setCoverFile(croppedFile);
+    setCoverPreview(previewUrl);
+
+    if (
+      currentTrack &&
+      (currentTrack.id === item.id ||
+        tracks.some((t) => t.id === currentTrack.id))
+    ) {
+      updateTrackCover(previewUrl);
     }
   };
 
@@ -237,7 +249,6 @@ export default function ModerationModal({
     if (coverFile) formData.append('cover', coverFile);
     if (audioFile) formData.append('audio', audioFile);
 
-    // Добавление отредактированных жанров для артиста
     if (schemaType === 'artist') {
       formData.append('genre', selectedGenres.join(', '));
       selectedGenres.forEach((g) => formData.append('genres[]', g));
@@ -328,333 +339,347 @@ export default function ModerationModal({
   })();
 
   return (
-    <div
-      className="modal-background"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div className="modal-window moderation-modal">
-        <div className="modal-window-top-buttons">
-          {moderationMode === 'review' ? (
-            <button type="button" className="modal-window-top-button active">
-              Модерация:{' '}
-              {item.type === 'artist'
-                ? 'Исполнитель'
-                : item.type === 'album'
-                  ? 'Альбом'
-                  : 'Трек'}
-            </button>
-          ) : (
+    <>
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={rawImageSrc}
+        cropShape={isArtist ? 'circle' : 'square'}
+        onClose={() => setCropModalOpen(false)}
+        onCropComplete={handleCropComplete}
+      />
+
+      <div
+        className="modal-background"
+        onClick={(e) => e.target === e.currentTarget && onClose()}
+      >
+        <div className="modal-window moderation-modal">
+          <div className="modal-window-top-buttons">
+            {moderationMode === 'review' ? (
+              <button type="button" className="modal-window-top-button active">
+                Модерация:{' '}
+                {item.type === 'artist'
+                  ? 'Исполнитель'
+                  : item.type === 'album'
+                    ? 'Альбом'
+                    : 'Трек'}
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="modal-window-top-button active"
+                onClick={() => setModerationMode('review')}
+              >
+                Причина отклонения
+              </button>
+            )}
+
             <button
               type="button"
-              className="modal-window-top-button active"
-              onClick={() => setModerationMode('review')}
+              className="modal-close-button"
+              onClick={onClose}
+              title="Закрыть"
             >
-              Причина отклонения
+              <img src={closeIcon} alt="✕" />
             </button>
-          )}
+          </div>
 
-          <button
-            type="button"
-            className="modal-close-button"
-            onClick={onClose}
-            title="Закрыть"
-          >
-            <img src={closeIcon} alt="✕" />
-          </button>
-        </div>
-
-        <div className="modal-window-content">
-          {moderationMode === 'review' && (
-            <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
-              <div className="moderation-preview">
-                <div className="moderation-cover">
-                  <img src={coverPreview || '/default.png'} alt="Обложка" />
-                  <label className="moderation-cover-change">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleCoverChange}
+          <div className="modal-window-content">
+            {moderationMode === 'review' && (
+              <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
+                <div className="moderation-preview">
+                  <div className="moderation-cover">
+                    <img
+                      src={coverPreview || '/default.png'}
+                      alt="Обложка"
+                      style={{ borderRadius: isArtist ? '50%' : '14px' }}
                     />
-                    Изменить обложку
-                  </label>
-                </div>
-              </div>
-
-              <div className="auth-form-group">
-                <label>
-                  {isArtist ? 'Имя исполнителя' : isAlbum ? 'Название альбома' : 'Название'} *
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={handleSingleTitleChange}
-                  placeholder="Введите название"
-                  disabled={loading}
-                  required
-                />
-              </div>
-
-              {/* Блок редактирования жанров артиста на модерации */}
-              {isArtist && (
-                <div className="auth-form-group">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <label style={{ margin: 0 }}>Жанры исполнителя *</label>
-                    {selectedGenres.length > 0 && (
-                      <span style={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: 600 }}>
-                        Выбрано: {selectedGenres.length}
-                      </span>
-                    )}
+                    <label className="moderation-cover-change">
+                      <input
+                        ref={coverInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverSelect}
+                      />
+                      Изменить обложку
+                    </label>
                   </div>
+                </div>
 
+                <div className="auth-form-group">
+                  <label>
+                    {isArtist ? 'Имя исполнителя' : isAlbum ? 'Название альбома' : 'Название'} *
+                  </label>
                   <input
                     type="text"
-                    className="input-element"
-                    placeholder="Поиск жанра по названию..."
-                    value={genreSearch}
-                    onChange={(e) => setGenreSearch(e.target.value)}
+                    value={title}
+                    onChange={handleSingleTitleChange}
+                    placeholder="Введите название"
                     disabled={loading}
-                    style={{ marginBottom: '8px' }}
-                  />
-
-                  <div className="genres-selector-list">
-                    {filteredGenres.length === 0 ? (
-                      <div style={{ padding: '8px', color: '#94a3b8', fontSize: '0.85rem' }}>
-                        Жанр не найден
-                      </div>
-                    ) : (
-                      filteredGenres.map((g) => {
-                        const isSelected = selectedGenres.includes(g.key);
-                        return (
-                          <button
-                            key={g.key}
-                            type="button"
-                            className={`genre-chip-btn ${isSelected ? 'active' : ''}`}
-                            onClick={() => handleToggleGenre(g.key)}
-                            disabled={loading}
-                          >
-                            {g.title_ru}
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {!isArtist && (
-                <div className="auth-form-group">
-                  <label>Год выпуска</label>
-                  <input
-                    type="number"
-                    value={releaseYear}
-                    onChange={(e) => setReleaseYear(e.target.value)}
-                    placeholder="2026"
-                    disabled={loading}
+                    required
                   />
                 </div>
-              )}
 
-              {isSingleAudio && (
-                <AgeRestrictionToggle
-                  checked={isAgeRestricted}
-                  onChange={setIsAgeRestricted}
-                  disabled={loading}
-                />
-              )}
-
-              {item.artist_info && (
-                <CollaboratorsManager
-                  mainArtist={item.artist_info}
-                  availableArtists={availableArtists}
-                  collaboratorIds={collaborators}
-                  onChange={setCollaborators}
-                  disabled={loading}
-                />
-              )}
-
-              {isSingleAudio && (
-                <div className="meta-box-card">
-                  <div className="meta-box-header">
-                    <label className="meta-switch-label">
-                      <input
-                        type="checkbox"
-                        checked={isCover}
-                        onChange={(e) => {
-                          setIsCover(e.target.checked);
-                          if (!e.target.checked) setOriginalTrackId(null);
-                        }}
-                        disabled={loading}
-                      />
-                      Кавер
-                    </label>
-                  </div>
-
-                  {isCover && (
-                    <OriginalTrackManager
-                      availableTracks={availableTracks}
-                      selectedTrackId={originalTrackId}
-                      onChange={setOriginalTrackId}
-                      disabled={loading}
-                    />
-                  )}
-                </div>
-              )}
-
-              {isSingleAudio && (
-                <div className="auth-form-group">
-                  <label>Аудиозапись</label>
-                  <div className="moderation-single-audio-box">
-                    <div className="moderation-single-audio-box-btn">
-                      <button
-                        type="button"
-                        className="track-slot-play-btn"
-                        onClick={handlePlaySingle}
-                        title={isSinglePlaying ? 'Пауза' : 'Слушать'}
-                      >
-                        <img
-                          src={isSinglePlaying ? pauseIcon : playIcon}
-                          alt="Play/Pause"
-                        />
-                      </button>
+                {isArtist && (
+                  <div className="auth-form-group">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ margin: 0 }}>Жанры исполнителя *</label>
+                      {selectedGenres.length > 0 && (
+                        <span style={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: 600 }}>
+                          Выбрано: {selectedGenres.length}
+                        </span>
+                      )}
                     </div>
 
-                    <label className="moderation-audio-change">
-                      <input
-                        type="file"
-                        accept="audio/*"
-                        onChange={(e) => setAudioFile(e.target.files[0])}
-                      />
-                      {audioFile
-                        ? 'Файл выбран для замены'
-                        : 'Заменить аудиофайл'}
-                    </label>
-                  </div>
-                </div>
-              )}
+                    <input
+                      type="text"
+                      className="input-element"
+                      placeholder="Поиск жанра по названию..."
+                      value={genreSearch}
+                      onChange={(e) => setGenreSearch(e.target.value)}
+                      disabled={loading}
+                      style={{ marginBottom: '8px' }}
+                    />
 
-              {isAlbum && (
-                <div className="auth-form-group">
-                  <label>Треки альбома ({tracks.length} шт.):</label>
-                  <div className="scrollable-track-list">
-                    {tracks.map((track, idx) => (
-                      <TrackSlotItem
-                        key={track.id || idx}
-                        index={idx}
-                        track={track}
-                        total={tracks.length}
-                        onChange={handleTrackChange}
-                        onMove={moveTrack}
-                        onRemove={handleRemoveTrack}
-                        showPlay
-                        onPlay={handlePlayAlbumTrack}
-                        isPlaying={currentTrack?.id === track.id && isPlaying}
-                        disabled={loading}
-                        availableArtists={availableArtists}
+                    <div className="genres-selector-list">
+                      {filteredGenres.length === 0 ? (
+                        <div style={{ padding: '8px', color: '#94a3b8', fontSize: '0.85rem' }}>
+                          Жанр не найден
+                        </div>
+                      ) : (
+                        filteredGenres.map((g) => {
+                          const isSelected = selectedGenres.includes(g.key);
+                          return (
+                            <button
+                              key={g.key}
+                              type="button"
+                              className={`genre-chip-btn ${isSelected ? 'active' : ''}`}
+                              onClick={() => handleToggleGenre(g.key)}
+                              disabled={loading}
+                            >
+                              {g.title_ru}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {!isArtist && (
+                  <div className="auth-form-group">
+                    <label>Год выпуска</label>
+                    <input
+                      type="number"
+                      value={releaseYear}
+                      onChange={(e) => setReleaseYear(e.target.value)}
+                      placeholder="2026"
+                      disabled={loading}
+                    />
+                  </div>
+                )}
+
+                {isSingleAudio && (
+                  <AgeRestrictionToggle
+                    checked={isAgeRestricted}
+                    onChange={setIsAgeRestricted}
+                    disabled={loading}
+                  />
+                )}
+
+                {item.artist_info && (
+                  <CollaboratorsManager
+                    mainArtist={item.artist_info}
+                    availableArtists={availableArtists}
+                    collaboratorIds={collaborators}
+                    onChange={setCollaborators}
+                    disabled={loading}
+                  />
+                )}
+
+                {isSingleAudio && (
+                  <div className="meta-box-card">
+                    <div className="meta-box-header">
+                      <label className="meta-switch-label">
+                        <input
+                          type="checkbox"
+                          checked={isCover}
+                          onChange={(e) => {
+                            setIsCover(e.target.checked);
+                            if (!e.target.checked) setOriginalTrackId(null);
+                          }}
+                          disabled={loading}
+                        />
+                        Кавер
+                      </label>
+                    </div>
+
+                    {isCover && (
+                      <OriginalTrackManager
                         availableTracks={availableTracks}
-                        mainArtist={item.artist_info}
+                        selectedTrackId={originalTrackId}
+                        onChange={setOriginalTrackId}
+                        disabled={loading}
                       />
+                    )}
+                  </div>
+                )}
+
+                {isSingleAudio && (
+                  <div className="auth-form-group">
+                    <label>Аудиозапись</label>
+                    <div className="moderation-single-audio-box">
+                      <div className="moderation-single-audio-box-btn">
+                        <button
+                          type="button"
+                          className="track-slot-play-btn"
+                          onClick={handlePlaySingle}
+                          title={isSinglePlaying ? 'Пауза' : 'Слушать'}
+                        >
+                          <img
+                            src={isSinglePlaying ? pauseIcon : playIcon}
+                            alt="Play/Pause"
+                          />
+                        </button>
+                      </div>
+
+                      <label className="moderation-audio-change">
+                        <input
+                          type="file"
+                          accept="audio/*"
+                          onChange={(e) => setAudioFile(e.target.files[0])}
+                        />
+                        {audioFile
+                          ? 'Файл выбран для замены'
+                          : 'Заменить аудиофайл'}
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {isAlbum && (
+                  <div className="auth-form-group">
+                    <label>Треки альбома ({tracks.length} шт.):</label>
+                    <div className="scrollable-track-list">
+                      {tracks.map((track, idx) => (
+                        <TrackSlotItem
+                          key={track.id || idx}
+                          index={idx}
+                          track={track}
+                          total={tracks.length}
+                          onChange={handleTrackChange}
+                          onMove={moveTrack}
+                          onRemove={handleRemoveTrack}
+                          showPlay
+                          onPlay={handlePlayAlbumTrack}
+                          isPlaying={currentTrack?.id === track.id && isPlaying}
+                          disabled={loading}
+                          availableArtists={availableArtists}
+                          availableTracks={availableTracks}
+                          mainArtist={item.artist_info}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="moderation-actions">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    disabled={isApproveDisabled}
+                    onClick={() => handleSubmit('approve')}
+                  >
+                    {loading ? 'Сохранение...' : 'Одобрить'}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={loading}
+                    onClick={() => setModerationMode('reject')}
+                  >
+                    Отклонить
+                  </Button>
+                </div>
+              </form>
+            )}
+
+            {moderationMode === 'reject' && (
+              <div className="auth-form">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b91c1c' }}>
+                  <img
+                    src={alertIcon}
+                    alt="Внимание"
+                    style={{
+                      width: '22px',
+                      height: '22px',
+                      filter: 'invert(24%) sepia(88%) saturate(3412%) hue-rotate(352deg) brightness(92%) contrast(93%)'
+                    }}
+                  />
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>
+                    Укажите причину отклонения для автора
+                  </h3>
+                </div>
+
+                <p className="auth-form-subtitle" style={{ margin: '0 0 10px 0' }}>
+                  Автор получит уведомление с точной причиной отклонения релиза <strong>«{title || item.title || item.name}»</strong>:
+                </p>
+
+                <div>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#64748b', display: 'block', marginBottom: '6px' }}>
+                    Готовые шаблоны:
+                  </label>
+                  <div className="reject-presets">
+                    {COMMON_REJECT_REASONS.map((preset, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        className={`reject-preset-chip ${rejectReason === preset ? 'active' : ''}`}
+                        onClick={() => setRejectReason(preset)}
+                      >
+                        {preset}
+                      </button>
                     ))}
                   </div>
                 </div>
-              )}
 
-              <div className="moderation-actions">
-                <Button
-                  type="button"
-                  variant="primary"
-                  disabled={isApproveDisabled}
-                  onClick={() => handleSubmit('approve')}
-                >
-                  {loading ? 'Сохранение...' : 'Одобрить'}
-                </Button>
+                <div className="auth-form-group">
+                  <label>Текст причины (обязательно) *</label>
+                  <textarea
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    placeholder="Опишите, что именно требуется исправить..."
+                    required
+                    disabled={loading}
+                    className="moderation-textarea"
+                    style={{ minHeight: '90px' }}
+                    autoFocus
+                  />
+                </div>
 
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={loading}
-                  onClick={() => setModerationMode('reject')}
-                >
-                  Отклонить
-                </Button>
-              </div>
-            </form>
-          )}
-
-          {moderationMode === 'reject' && (
-            <div className="auth-form">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b91c1c' }}>
-                <img
-                  src={alertIcon}
-                  alt="Внимание"
-                  style={{
-                    width: '22px',
-                    height: '22px',
-                    filter: 'invert(24%) sepia(88%) saturate(3412%) hue-rotate(352deg) brightness(92%) contrast(93%)'
-                  }}
-                />
-                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>
-                  Укажите причину отклонения для автора
-                </h3>
-              </div>
-
-              <p className="auth-form-subtitle" style={{ margin: '0 0 10px 0' }}>
-                Автор получит уведомление с точной причиной отклонения релиза <strong>«{title || item.title || item.name}»</strong>:
-              </p>
-
-              <div>
-                <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#64748b', display: 'block', marginBottom: '6px' }}>
-                  Готовые шаблоны:
-                </label>
-                <div className="reject-presets">
-                  {COMMON_REJECT_REASONS.map((preset, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      className={`reject-preset-chip ${rejectReason === preset ? 'active' : ''}`}
-                      onClick={() => setRejectReason(preset)}
-                    >
-                      {preset}
-                    </button>
-                  ))}
+                <div className="modal-actions-row">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={loading}
+                    onClick={() => setModerationMode('review')}
+                  >
+                    Назад к проверке
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    disabled={loading || !rejectReason.trim()}
+                    onClick={() => handleSubmit('reject', rejectReason)}
+                  >
+                    {loading ? 'Отклонение...' : 'Отклонить и отправить автору'}
+                  </Button>
                 </div>
               </div>
-
-              <div className="auth-form-group">
-                <label>Текст причины (обязательно) *</label>
-                <textarea
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                  placeholder="Опишите, что именно требуется исправить..."
-                  required
-                  disabled={loading}
-                  className="moderation-textarea"
-                  style={{ minHeight: '90px' }}
-                  autoFocus
-                />
-              </div>
-
-              <div className="modal-actions-row">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={loading}
-                  onClick={() => setModerationMode('review')}
-                >
-                  Назад к проверке
-                </Button>
-                <Button
-                  type="button"
-                  variant="primary"
-                  disabled={loading || !rejectReason.trim()}
-                  onClick={() => handleSubmit('reject', rejectReason)}
-                >
-                  {loading ? 'Отклонение...' : 'Отклонить и отправить автору'}
-                </Button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

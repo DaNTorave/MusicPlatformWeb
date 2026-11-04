@@ -1,0 +1,74 @@
+.image-crop-modal-backdrop {
+  z-index: 1200;
+}
+
+.image-crop-modal-window {
+  max-width: 420px;
+}
+
+.image-crop-hint {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0 0 14px 0;
+  text-align: center;
+}
+
+.image-crop-viewport {
+  position: relative;
+  width: 340px;
+  height: 340px;
+  margin: 0 auto;
+  overflow: hidden;
+  background-color: #0f172a;
+  border-radius: 12px;
+  cursor: grab;
+  user-select: none;
+}
+
+.image-crop-viewport:active {
+  cursor: grabbing;
+}
+
+.image-crop-source {
+  position: absolute;
+  pointer-events: none;
+  max-width: none;
+}
+
+.image-crop-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65);
+}
+
+.image-crop-mask.square {
+  border: 2px solid #ffffff;
+  border-radius: 8px;
+}
+
+.image-crop-mask.circle {
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+}
+
+.image-crop-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 20px 0;
+}
+
+.image-crop-scale-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.image-crop-slider {
+  flex: 1;
+  cursor: pointer;
+}
