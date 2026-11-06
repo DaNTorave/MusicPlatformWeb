@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/apiClient';
 import { useAudioPlayer } from '../context/AudioContext';
 
+import Modal from './Modal';
 import CreateArtistModal from '../components/CreateArtistModal';
 import EditEntityModal from '../components/EditEntityModal';
 import TrackRow from '../components/TrackRow';
@@ -37,7 +38,9 @@ export default function Content() {
   const currentUser = apiClient.getUser();
   const isStaff =
     currentUser &&
-    (currentUser.role === 'admin' || currentUser.role === 'moderator' || currentUser.role === 'owner');
+    (currentUser.role === 'admin' ||
+      currentUser.role === 'moderator' ||
+      currentUser.role === 'owner');
 
   // Загрузка артистов, треков и жанрового словаря
   const fetchData = async () => {
@@ -62,10 +65,14 @@ export default function Content() {
     fetchData();
   }, []);
 
+  // Форматирование ключа жанра в русское название
   const formatGenresToRu = (artist) => {
-    const rawList = Array.isArray(artist.genres) && artist.genres.length > 0
-      ? artist.genres
-      : (artist.genre ? artist.genre.split(',').map((s) => s.trim()) : []);
+    const rawList =
+      Array.isArray(artist.genres) && artist.genres.length > 0
+        ? artist.genres
+        : artist.genre
+          ? artist.genre.split(',').map((s) => s.trim())
+          : [];
 
     if (rawList.length === 0) return '';
 
@@ -74,6 +81,7 @@ export default function Content() {
     return found ? found.title_ru : firstGenreKey;
   };
 
+  // Закрытие выпадающего списка поиска при клике вне его области
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -87,6 +95,7 @@ export default function Content() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Задержка обновления поискового запроса
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchQuery);
@@ -94,6 +103,7 @@ export default function Content() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Вычисление результатов поиска по трекам и исполнителям
   const searchResults = useMemo(() => {
     const query = debouncedQuery.trim().toLowerCase();
     if (!query) return { artists: [], tracks: [] };
@@ -123,6 +133,7 @@ export default function Content() {
     return { artists: matchedArtists, tracks: matchedTracks };
   }, [debouncedQuery, artists, topTracks, genresList]);
 
+  // Удаление карточки исполнителя
   const handleDeleteArtist = async (e, artistId) => {
     e.stopPropagation();
     if (!window.confirm('Удалить этого исполнителя?')) return;
@@ -144,11 +155,19 @@ export default function Content() {
 
   return (
     <>
-      <CreateArtistModal
+      <Modal
         isOpen={isArtistModalOpen}
         onClose={() => setIsArtistModalOpen(false)}
-        onSuccess={() => fetchData()}
-      />
+        tabs={[{ id: 'create_artist', label: 'Новый исполнитель' }]}
+        activeTab="create_artist"
+        size="narrow"
+      >
+        <CreateArtistModal
+          onClose={() => setIsArtistModalOpen(false)}
+          onSuccess={() => fetchData()}
+        />
+      </Modal>
+
       <EditEntityModal
         isOpen={Boolean(editingArtist)}
         onClose={() => setEditingArtist(null)}
@@ -184,7 +203,8 @@ export default function Content() {
               >
                 {!hasResults ? (
                   <div className="search-dropdown-empty">
-                    Ничего не найдено по запросу: <strong>{debouncedQuery}</strong>
+                    Ничего не найдено по запросу:{' '}
+                    <strong>{debouncedQuery}</strong>
                   </div>
                 ) : (
                   <>
@@ -374,7 +394,7 @@ export default function Content() {
             </div>
 
             <div>
-              <div className="chart-header-row" style={{ marginTop: '30px' }}>
+              <div className="chart-header-row">
                 <h2 className="section-heading section-heading-flush">
                   Популярные исполнители
                 </h2>

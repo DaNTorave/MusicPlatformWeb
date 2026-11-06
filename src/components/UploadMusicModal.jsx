@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { apiClient } from '../api/apiClient';
 import * as musicMetadata from 'music-metadata';
 
+import Modal from '../containers/Modal';
 import Button from './Button';
 import TrackSlotItem from './TrackSlotItem';
 import CollaboratorsManager from './CollaboratorsManager';
@@ -9,11 +10,9 @@ import OriginalTrackManager from './OriginalTrackManager';
 import AgeRestrictionToggle from './AgeRestrictionToggle';
 import ImageCropModal from './ImageCropModal';
 
-import closeIcon from '../assets/close-icon.svg';
+import '../styles/Modal.css';
 
-import '../styles/AuthModal.css';
-
-// Создание пустого слота трека
+// Создание пустого слота трека для альбома
 const createEmptyTrack = (releaseYear = '') => ({
   title: '',
   audio: null,
@@ -26,14 +25,22 @@ const createEmptyTrack = (releaseYear = '') => ({
   age_restriction: false,
 });
 
+// Компонент формы загрузки музыкальных релизов
 export default function UploadMusicModal({
   isOpen,
   onClose,
   onSuccess,
+  uploadType: externalUploadType,
+  onUploadTypeChange,
   artistId: initialArtistId = '',
   artistName: initialArtistName = '',
 }) {
-  const [uploadType, setUploadType] = useState('single');
+  // Состояние типа загрузки (управляемое извне или внутреннее)
+  const [internalUploadType, setInternalUploadType] = useState('single');
+  const uploadType = externalUploadType || internalUploadType;
+  const setUploadType = onUploadTypeChange || setInternalUploadType;
+
+  // Состояния полей релиза
   const [titleOrName, setTitleOrName] = useState('');
   const [releaseYear, setReleaseYear] = useState('');
   const [genre, setGenre] = useState('');
@@ -47,7 +54,7 @@ export default function UploadMusicModal({
   const [singleDuration, setSingleDuration] = useState(0);
   const [singleAgeRestriction, setSingleAgeRestriction] = useState(false);
 
-  // Состояния для кавера
+  // Состояния для кавер-версии
   const [isCover, setIsCover] = useState(false);
   const [originalTrackId, setOriginalTrackId] = useState(null);
 
@@ -65,26 +72,25 @@ export default function UploadMusicModal({
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Загрузка списков артистов и треков при открытии
+  // Загрузка списков артистов и треков
   useEffect(() => {
-    if (isOpen) {
-      apiClient
-        .request('/api/artists')
-        .then((res) => {
-          if (res?.data) setAvailableArtists(res.data);
-        })
-        .catch((err) => console.error('Ошибка загрузки артистов:', err));
+    if (isOpen === false) return;
+    apiClient
+      .request('/api/artists')
+      .then((res) => {
+        if (res?.data) setAvailableArtists(res.data);
+      })
+      .catch((err) => console.error('Ошибка загрузки артистов:', err));
 
-      apiClient
-        .request('/api/charts/tracks')
-        .then((res) => {
-          if (res?.data) setAvailableTracks(res.data);
-        })
-        .catch((err) => console.error('Ошибка загрузки треков:', err));
-    }
+    apiClient
+      .request('/api/charts/tracks')
+      .then((res) => {
+        if (res?.data) setAvailableTracks(res.data);
+      })
+      .catch((err) => console.error('Ошибка загрузки треков:', err));
   }, [isOpen]);
 
-  // Сброс соавторов и установка artistId при открытии
+  // Установка начального исполнителя и сброс соавторов
   useEffect(() => {
     if (initialArtistId) {
       setArtistId(initialArtistId);
@@ -93,9 +99,7 @@ export default function UploadMusicModal({
     setSelectedCollaborators([]);
   }, [initialArtistId, isOpen]);
 
-  if (!isOpen) return null;
-
-  // Ручной выбор файла обложки (открывает окно кадрирования)
+  // Ручной выбор файла обложки с открытием кадрирования
   const handleCoverSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -105,7 +109,7 @@ export default function UploadMusicModal({
     e.target.value = '';
   };
 
-  // Завершение кадрирования обложки или аватара
+  // Завершение кадрирования обложки
   const handleCropComplete = (croppedFile, previewUrl) => {
     setCoverFile(croppedFile);
     setCoverPreview(previewUrl);
@@ -122,7 +126,7 @@ export default function UploadMusicModal({
     ]);
   };
 
-  // Изменение поля трека
+  // Изменение данных слота трека в альбоме
   const handleTrackChange = (index, field, value) => {
     setAlbumTracks((prev) => {
       const updated = [...prev];
@@ -131,7 +135,7 @@ export default function UploadMusicModal({
     });
   };
 
-  // Удаление слота трека
+  // Удаление слота трека из альбома
   const handleRemoveTrackSlot = (index) => {
     setAlbumTracks((prev) => {
       const filtered = prev.filter((_, i) => i !== index);
@@ -145,7 +149,7 @@ export default function UploadMusicModal({
     });
   };
 
-  // Перемещение трека вверх или вниз
+  // Изменение порядка треков в альбоме
   const moveTrack = (fromIndex, toIndex) => {
     if (toIndex < 0 || toIndex >= albumTracks.length) return;
     setAlbumTracks((prev) => {
@@ -156,7 +160,7 @@ export default function UploadMusicModal({
     });
   };
 
-  // Обработка одиночного аудиофайла с автоматической установкой обложки из тегов без окна кадрирования
+  // Чтение метаданных одиночного аудиофайла
   const applySingleFile = async (file) => {
     if (!file) return;
     setSingleAudio(file);
@@ -186,15 +190,18 @@ export default function UploadMusicModal({
 
       if (!artistId && metadata.common.artist && availableArtists.length > 0) {
         const matched = availableArtists.find(
-          (a) => a.name.toLowerCase() === metadata.common.artist.toLowerCase()
+          (a) => a.name.toLowerCase() === metadata.common.artist.toLowerCase(),
         );
         if (matched) {
           setArtistId(matched.id);
         }
       }
 
-      // Автоматическое сохранение встроенной обложки без кадрирования
-      if (metadata.common.picture && metadata.common.picture.length > 0 && !coverFile) {
+      if (
+        metadata.common.picture &&
+        metadata.common.picture.length > 0 &&
+        !coverFile
+      ) {
         const pic = metadata.common.picture[0];
         const blob = new Blob([pic.data], { type: pic.format });
         const cover = new File([blob], 'cover.jpg', {
@@ -211,12 +218,12 @@ export default function UploadMusicModal({
     }
   };
 
-  // Пакетная обработка аудиофайлов альбома с автоматической установкой обложки из первого трека
+  // Пакетное чтение метаданных аудиофайлов альбома
   const processBatchAudioFiles = async (files) => {
     const audioFiles = Array.from(files).filter(
       (f) =>
         f.type.startsWith('audio/') ||
-        /\.(mp3|wav|flac|m4a|aac|ogg)$/i.test(f.name)
+        /\.(mp3|wav|flac|m4a|aac|ogg)$/i.test(f.name),
     );
 
     if (audioFiles.length === 0) {
@@ -257,7 +264,6 @@ export default function UploadMusicModal({
           if (metadata.common.year && !releaseYear) {
             setReleaseYear(String(metadata.common.year));
           }
-          // Автоматическая установка обложки альбома из первого трека
           if (
             metadata.common.picture &&
             metadata.common.picture.length > 0 &&
@@ -291,7 +297,7 @@ export default function UploadMusicModal({
 
     setAlbumTracks((prev) => {
       const existing = prev.filter(
-        (t) => t.title.trim() !== '' && t.audio !== null
+        (t) => t.title.trim() !== '' && t.audio !== null,
       );
       const combined = [...existing, ...parsedSlots];
       return combined.sort((a, b) => (a.position || 0) - (b.position || 0));
@@ -299,7 +305,7 @@ export default function UploadMusicModal({
     setLoading(false);
   };
 
-  // Обработка перетаскивания файлов
+  // Обработка события перетаскивания файлов в область загрузки
   const handleDropzoneDrop = (e) => {
     e.preventDefault();
     setIsDraggingOver(false);
@@ -314,7 +320,7 @@ export default function UploadMusicModal({
     }
   };
 
-  // Отправка формы загрузки
+  // Отправка данных релиза на сервер
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
@@ -340,14 +346,14 @@ export default function UploadMusicModal({
         formData.append('position', 1);
         formData.append(
           'age_restriction',
-          singleAgeRestriction ? 'true' : 'false'
+          singleAgeRestriction ? 'true' : 'false',
         );
         if (releaseYear) formData.append('release_year', releaseYear);
         if (isCover && originalTrackId) {
           formData.append('original_track_id', originalTrackId);
         }
         selectedCollaborators.forEach((id) =>
-          formData.append('collaborator_ids[]', id)
+          formData.append('collaborator_ids[]', id),
         );
         if (coverFile) formData.append('cover', coverFile);
         if (singleAudio) formData.append('audio', singleAudio);
@@ -365,28 +371,28 @@ export default function UploadMusicModal({
             formData.append(`tracks[${idx}][audio]`, track.audio);
             formData.append(
               `tracks[${idx}][duration_seconds]`,
-              track.duration || 0
+              track.duration || 0,
             );
             formData.append(
               `tracks[${idx}][position]`,
-              track.position || idx + 1
+              track.position || idx + 1,
             );
             formData.append(
               `tracks[${idx}][release_year]`,
-              track.release_year || releaseYear || ''
+              track.release_year || releaseYear || '',
             );
             formData.append(
               `tracks[${idx}][is_cover]`,
-              track.is_cover ? 'true' : 'false'
+              track.is_cover ? 'true' : 'false',
             );
             formData.append(
               `tracks[${idx}][age_restriction]`,
-              track.age_restriction ? 'true' : 'false'
+              track.age_restriction ? 'true' : 'false',
             );
             if (track.is_cover && track.original_track_id) {
               formData.append(
                 `tracks[${idx}][original_track_id]`,
-                track.original_track_id
+                track.original_track_id,
               );
             }
 
@@ -413,7 +419,7 @@ export default function UploadMusicModal({
         setAlbumTracks([createEmptyTrack()]);
         setSelectedCollaborators([]);
         if (onSuccess) onSuccess();
-        onClose();
+        if (onClose) onClose();
       }, 1200);
     } catch (err) {
       setErrorMsg(err.data?.error || err.message || 'Ошибка отправки данных');
@@ -426,6 +432,7 @@ export default function UploadMusicModal({
     availableArtists.find((a) => String(a.id) === String(artistId)) ||
     (initialArtistId ? { id: initialArtistId, name: initialArtistName } : null);
 
+  // Проверка доступности кнопки отправки
   const isSubmitDisabled = (() => {
     if (loading) return true;
 
@@ -445,7 +452,7 @@ export default function UploadMusicModal({
       const validTracks = albumTracks.filter((t) => t.title.trim() && t.audio);
       if (validTracks.length === 0) return true;
       const hasIncompleteCover = validTracks.some(
-        (t) => t.is_cover && !t.original_track_id
+        (t) => t.is_cover && !t.original_track_id,
       );
       if (hasIncompleteCover) return true;
       return false;
@@ -454,7 +461,7 @@ export default function UploadMusicModal({
     return false;
   })();
 
-  return (
+  const formContent = (
     <>
       <ImageCropModal
         isOpen={cropModalOpen}
@@ -464,325 +471,292 @@ export default function UploadMusicModal({
         onCropComplete={handleCropComplete}
       />
 
-      <div
-        className="modal-background"
-        onClick={(e) => e.target === e.currentTarget && onClose()}
-      >
-        <div className="modal-window modal-window-wide">
-          <div className="modal-window-top-buttons">
-            <button
-              type="button"
-              className={`modal-window-top-button ${uploadType === 'single' ? 'active' : ''}`}
-              onClick={() => setUploadType('single')}
-            >
-              Сингл
-            </button>
-            <button
-              type="button"
-              className={`modal-window-top-button ${uploadType === 'album' ? 'active' : ''}`}
-              onClick={() => setUploadType('album')}
-            >
-              Альбом
-            </button>
-            {!initialArtistId && (
-              <button
-                type="button"
-                className={`modal-window-top-button ${uploadType === 'artist' ? 'active' : ''}`}
-                onClick={() => setUploadType('artist')}
-              >
-                Артист
-              </button>
-            )}
-            <button
-              type="button"
-              className="modal-close-button"
-              onClick={onClose}
-            >
-              <img src={closeIcon} alt="Закрыть" />
-            </button>
-          </div>
+      <form className="auth-form" onSubmit={handleSubmit}>
+        {initialArtistName && (
+          <p className="auth-form-subtitle">
+            Основной исполнитель: <strong>{initialArtistName}</strong>
+          </p>
+        )}
 
-          <div className="modal-window-content modal-window-content-scroll">
-            <form className="auth-form" onSubmit={handleSubmit}>
-              {initialArtistName && (
-                <p className="auth-form-subtitle">
-                  Основной исполнитель: <strong>{initialArtistName}</strong>
-                </p>
-              )}
+        {errorMsg && <div className="auth-error-global">{errorMsg}</div>}
+        {successMsg && <div className="auth-success-global">{successMsg}</div>}
 
-              {errorMsg && <div className="auth-error-global">{errorMsg}</div>}
-              {successMsg && (
-                <div className="auth-success-global">{successMsg}</div>
-              )}
-
-              <div className="auth-form-group">
-                <label>
-                  {uploadType === 'artist'
-                    ? 'Имя исполнителя'
-                    : 'Название релиза'}{' '}
-                  *
-                </label>
-                <input
-                  type="text"
-                  value={titleOrName}
-                  onChange={(e) => setTitleOrName(e.target.value)}
-                  placeholder={
-                    uploadType === 'artist' ? 'Введите имя' : 'Введите название'
-                  }
-                  required
-                  disabled={loading}
-                />
-              </div>
-
-              {uploadType !== 'artist' && (
-                <div className="auth-form-group">
-                  <label>Год выпуска</label>
-                  <input
-                    type="number"
-                    placeholder="Например: 2026"
-                    value={releaseYear}
-                    onChange={(e) => setReleaseYear(e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-              )}
-
-              {uploadType === 'artist' && (
-                <div className="auth-form-group">
-                  <label>Основной жанр *</label>
-                  <input
-                    type="text"
-                    value={genre}
-                    onChange={(e) => setGenre(e.target.value)}
-                    placeholder="Hip-Hop, Electronic, Rock..."
-                    required
-                    disabled={loading}
-                  />
-                </div>
-              )}
-
-              {uploadType !== 'artist' && !initialArtistId && (
-                <div className="auth-form-group">
-                  <label>Основной исполнитель *</label>
-                  <select
-                    value={artistId}
-                    onChange={(e) => setArtistId(e.target.value)}
-                    required
-                    disabled={loading}
-                    className="input-element upload-select"
-                  >
-                    <option value="">Выберите артиста...</option>
-                    {availableArtists.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.name} ({a.genre})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {uploadType === 'single' && (
-                <CollaboratorsManager
-                  mainArtist={currentMainArtist}
-                  availableArtists={availableArtists}
-                  collaboratorIds={selectedCollaborators}
-                  onChange={setSelectedCollaborators}
-                  disabled={loading}
-                />
-              )}
-
-              {uploadType === 'single' && (
-                <div className="meta-box-card">
-                  <div className="meta-box-header">
-                    <label className="meta-switch-label">
-                      <input
-                        type="checkbox"
-                        checked={isCover}
-                        onChange={(e) => {
-                          setIsCover(e.target.checked);
-                          if (!e.target.checked) setOriginalTrackId(null);
-                        }}
-                        disabled={loading}
-                      />
-                      Кавер
-                    </label>
-                  </div>
-
-                  {isCover && (
-                    <OriginalTrackManager
-                      availableTracks={availableTracks}
-                      selectedTrackId={originalTrackId}
-                      onChange={setOriginalTrackId}
-                      disabled={loading}
-                    />
-                  )}
-                </div>
-              )}
-
-              {uploadType === 'single' && (
-                <AgeRestrictionToggle
-                  checked={singleAgeRestriction}
-                  onChange={setSingleAgeRestriction}
-                  disabled={loading}
-                />
-              )}
-
-              <div className="auth-form-group">
-                <label>
-                  {uploadType === 'artist'
-                    ? 'Аватар (обложка)'
-                    : 'Обложка релиза'}
-                </label>
-                {coverPreview && (
-                  <div className="upload-cover-preview-wrapper">
-                    <img
-                      src={coverPreview}
-                      alt="Превью обложки"
-                      className={`upload-cover-preview ${uploadType === 'artist' ? 'circle' : ''}`}
-                    />
-                  </div>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleCoverSelect}
-                  disabled={loading}
-                />
-              </div>
-
-              {uploadType === 'single' && (
-                <div className="auth-form-group">
-                  <label>Аудиозапись *</label>
-                  <div
-                    className={`dropzone-box ${isDraggingOver ? 'dragover' : ''}`}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      setIsDraggingOver(true);
-                    }}
-                    onDragLeave={() => setIsDraggingOver(false)}
-                    onDrop={handleDropzoneDrop}
-                    onClick={() =>
-                      singleFileInputRef.current &&
-                      singleFileInputRef.current.click()
-                    }
-                  >
-                    <p className="dropzone-text">
-                      {singleAudio
-                        ? singleAudio.name
-                        : 'Перетащите аудиофайл сюда или нажмите'}
-                    </p>
-                    <p className="dropzone-subtext">
-                      Поддерживаются форматы MP3, WAV, FLAC
-                    </p>
-
-                    {singleAudio && (
-                      <span className="dropzone-file-selected">
-                        Готов к загрузке (
-                        {(singleAudio.size / (1024 * 1024)).toFixed(2)} МБ)
-                      </span>
-                    )}
-
-                    <input
-                      ref={singleFileInputRef}
-                      type="file"
-                      accept="audio/*"
-                      style={{ display: 'none' }}
-                      onChange={(e) => applySingleFile(e.target.files[0])}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {uploadType === 'album' && (
-                <div className="auth-form-group">
-                  <div className="track-list-header">
-                    <label>
-                      Список треков альбома ({albumTracks.length} шт.):
-                    </label>
-                    <div className="track-list-actions">
-                      {albumTracks.length > 0 && (
-                        <button
-                          type="button"
-                          className="track-list-add-btn track-list-clear-btn"
-                          onClick={() =>
-                            setAlbumTracks([createEmptyTrack(releaseYear || '')])
-                          }
-                        >
-                          Очистить все
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        className="track-list-add-btn"
-                        onClick={handleAddTrackSlot}
-                      >
-                        + Добавить слот
-                      </button>
-                    </div>
-                  </div>
-
-                  <div
-                    className={`dropzone-box ${isDraggingOver ? 'dragover' : ''}`}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      setIsDraggingOver(true);
-                    }}
-                    onDragLeave={() => setIsDraggingOver(false)}
-                    onDrop={handleDropzoneDrop}
-                    onClick={() =>
-                      albumBatchInputRef.current &&
-                      albumBatchInputRef.current.click()
-                    }
-                  >
-                    <p className="dropzone-text">
-                      Перетащите один или несколько треков из проводника
-                    </p>
-                    <p className="dropzone-subtext">
-                      Теги (названия, год, порядок в альбоме) считаются
-                      автоматически
-                    </p>
-
-                    <input
-                      ref={albumBatchInputRef}
-                      type="file"
-                      accept="audio/*"
-                      multiple
-                      style={{ display: 'none' }}
-                      onChange={(e) => processBatchAudioFiles(e.target.files)}
-                    />
-                  </div>
-
-                  <div className="scrollable-track-list">
-                    {albumTracks.map((track, i) => (
-                      <TrackSlotItem
-                        key={i}
-                        index={i}
-                        track={track}
-                        total={albumTracks.length}
-                        onChange={handleTrackChange}
-                        onMove={moveTrack}
-                        onRemove={handleRemoveTrackSlot}
-                        disabled={loading}
-                        availableArtists={availableArtists}
-                        availableTracks={availableTracks}
-                        mainArtist={currentMainArtist}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={isSubmitDisabled}
-              >
-                {loading ? 'Отправка...' : 'Отправить на модерацию'}
-              </Button>
-            </form>
-          </div>
+        <div className="auth-form-group">
+          <label>
+            {uploadType === 'artist' ? 'Имя исполнителя' : 'Название релиза'} *
+          </label>
+          <input
+            type="text"
+            value={titleOrName}
+            onChange={(e) => setTitleOrName(e.target.value)}
+            placeholder={
+              uploadType === 'artist' ? 'Введите имя' : 'Введите название'
+            }
+            required
+            disabled={loading}
+          />
         </div>
-      </div>
+
+        {uploadType !== 'artist' && (
+          <div className="auth-form-group">
+            <label>Год выпуска</label>
+            <input
+              type="number"
+              placeholder="Например: 2026"
+              value={releaseYear}
+              onChange={(e) => setReleaseYear(e.target.value)}
+              disabled={loading}
+            />
+          </div>
+        )}
+
+        {uploadType === 'artist' && (
+          <div className="auth-form-group">
+            <label>Основной жанр *</label>
+            <input
+              type="text"
+              value={genre}
+              onChange={(e) => setGenre(e.target.value)}
+              placeholder="Hip-Hop, Electronic, Rock..."
+              required
+              disabled={loading}
+            />
+          </div>
+        )}
+
+        {uploadType !== 'artist' && !initialArtistId && (
+          <div className="auth-form-group">
+            <label>Основной исполнитель *</label>
+            <select
+              value={artistId}
+              onChange={(e) => setArtistId(e.target.value)}
+              required
+              disabled={loading}
+              className="input-element upload-select"
+            >
+              <option value="">Выберите артиста...</option>
+              {availableArtists.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name} ({a.genre})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {uploadType === 'single' && (
+          <CollaboratorsManager
+            mainArtist={currentMainArtist}
+            availableArtists={availableArtists}
+            collaboratorIds={selectedCollaborators}
+            onChange={setSelectedCollaborators}
+            disabled={loading}
+          />
+        )}
+
+        {uploadType === 'single' && (
+          <div className="meta-box-card">
+            <div className="meta-box-header">
+              <label className="meta-switch-label">
+                <input
+                  type="checkbox"
+                  checked={isCover}
+                  onChange={(e) => {
+                    setIsCover(e.target.checked);
+                    if (!e.target.checked) setOriginalTrackId(null);
+                  }}
+                  disabled={loading}
+                />
+                Кавер
+              </label>
+            </div>
+
+            {isCover && (
+              <OriginalTrackManager
+                availableTracks={availableTracks}
+                selectedTrackId={originalTrackId}
+                onChange={setOriginalTrackId}
+                disabled={loading}
+              />
+            )}
+          </div>
+        )}
+
+        {uploadType === 'single' && (
+          <AgeRestrictionToggle
+            checked={singleAgeRestriction}
+            onChange={setSingleAgeRestriction}
+            disabled={loading}
+          />
+        )}
+
+        <div className="auth-form-group">
+          <label>
+            {uploadType === 'artist' ? 'Аватар (обложка)' : 'Обложка релиза'}
+          </label>
+          {coverPreview && (
+            <div className="upload-cover-preview-wrapper">
+              <img
+                src={coverPreview}
+                alt="Превью обложки"
+                className={`upload-cover-preview ${uploadType === 'artist' ? 'circle' : ''}`}
+              />
+            </div>
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleCoverSelect}
+            disabled={loading}
+          />
+        </div>
+
+        {uploadType === 'single' && (
+          <div className="auth-form-group">
+            <label>Аудиозапись *</label>
+            <div
+              className={`dropzone-box ${isDraggingOver ? 'dragover' : ''}`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDraggingOver(true);
+              }}
+              onDragLeave={() => setIsDraggingOver(false)}
+              onDrop={handleDropzoneDrop}
+              onClick={() =>
+                singleFileInputRef.current && singleFileInputRef.current.click()
+              }
+            >
+              <p className="dropzone-text">
+                {singleAudio
+                  ? singleAudio.name
+                  : 'Перетащите аудиофайл сюда или нажмите'}
+              </p>
+              <p className="dropzone-subtext">
+                Поддерживаются форматы MP3, WAV, FLAC
+              </p>
+
+              {singleAudio && (
+                <span className="dropzone-file-selected">
+                  Готов к загрузке (
+                  {(singleAudio.size / (1024 * 1024)).toFixed(2)} МБ)
+                </span>
+              )}
+
+              <input
+                ref={singleFileInputRef}
+                type="file"
+                accept="audio/*"
+                className="hidden-file-input"
+                onChange={(e) => applySingleFile(e.target.files[0])}
+              />
+            </div>
+          </div>
+        )}
+
+        {uploadType === 'album' && (
+          <div className="auth-form-group">
+            <div className="track-list-header">
+              <label>Список треков альбома ({albumTracks.length} шт.):</label>
+              <div className="track-list-actions">
+                {albumTracks.length > 0 && (
+                  <button
+                    type="button"
+                    className="track-list-add-btn track-list-clear-btn"
+                    onClick={() =>
+                      setAlbumTracks([createEmptyTrack(releaseYear || '')])
+                    }
+                  >
+                    Очистить все
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="track-list-add-btn"
+                  onClick={handleAddTrackSlot}
+                >
+                  + Добавить слот
+                </button>
+              </div>
+            </div>
+
+            <div
+              className={`dropzone-box ${isDraggingOver ? 'dragover' : ''}`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDraggingOver(true);
+              }}
+              onDragLeave={() => setIsDraggingOver(false)}
+              onDrop={handleDropzoneDrop}
+              onClick={() =>
+                albumBatchInputRef.current && albumBatchInputRef.current.click()
+              }
+            >
+              <p className="dropzone-text">
+                Перетащите один или несколько треков из проводника
+              </p>
+              <p className="dropzone-subtext">
+                Теги (названия, год, порядок в альбоме) считаются автоматически
+              </p>
+
+              <input
+                ref={albumBatchInputRef}
+                type="file"
+                accept="audio/*"
+                multiple
+                className="hidden-file-input"
+                onChange={(e) => processBatchAudioFiles(e.target.files)}
+              />
+            </div>
+
+            <div className="scrollable-track-list">
+              {albumTracks.map((track, i) => (
+                <TrackSlotItem
+                  key={i}
+                  index={i}
+                  track={track}
+                  total={albumTracks.length}
+                  onChange={handleTrackChange}
+                  onMove={moveTrack}
+                  onRemove={handleRemoveTrackSlot}
+                  disabled={loading}
+                  availableArtists={availableArtists}
+                  availableTracks={availableTracks}
+                  mainArtist={currentMainArtist}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <Button type="submit" variant="primary" disabled={isSubmitDisabled}>
+          {loading ? 'Отправка...' : 'Отправить на модерацию'}
+        </Button>
+      </form>
     </>
   );
+
+  // Отрисовка внутри контейнера Modal при передаче пропса isOpen
+  if (isOpen !== undefined) {
+    const uploadTabs = [
+      { id: 'single', label: 'Сингл' },
+      { id: 'album', label: 'Альбом' },
+      ...(!initialArtistId ? [{ id: 'artist', label: 'Артист' }] : []),
+    ];
+
+    return (
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        tabs={uploadTabs}
+        activeTab={uploadType}
+        onTabChange={setUploadType}
+        size="wide"
+        scrollable={true}
+      >
+        {formContent}
+      </Modal>
+    );
+  }
+
+  return formContent;
 }

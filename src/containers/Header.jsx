@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/apiClient';
 
 import Button from '../components/Button';
-import AuthModal from './AuthModal';
+import Modal from './Modal';
+import AuthModal from '../components/AuthModal';
 import UploadMusicModal from '../components/UploadMusicModal';
 import NotificationsModal from '../components/NotificationsModal';
 
@@ -13,7 +14,12 @@ import userIcon from '../assets/user-svgrepo-com.svg';
 import '../styles/Header.css';
 
 export default function Header() {
+  // Состояния открытого модального окна, вкладок и уведомлений
   const [activeModal, setActiveModal] = useState(null);
+  const [authTab, setAuthTab] = useState('login');
+  const [uploadTab, setUploadTab] = useState('single');
+  const [toastNotification, setToastNotification] = useState(null);
+
   const [user, setUser] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -90,6 +96,14 @@ export default function Header() {
     };
   }, []);
 
+  // Показ всплывающего уведомления поверх модального окна на 8 секунд
+  const showNotification = (msg) => {
+    setToastNotification(msg);
+    setTimeout(() => {
+      setToastNotification(null);
+    }, 8000);
+  };
+
   // Обработка успешного входа
   const handleLoginSuccess = () => {
     const currentUser = apiClient.getUser();
@@ -97,6 +111,7 @@ export default function Header() {
     setActiveModal(null);
     setIsDropdownOpen(false);
     loadUnreadCount();
+    window.location.reload();
   };
 
   // Выход из системы
@@ -115,11 +130,12 @@ export default function Header() {
     navigate('/profile');
   };
 
-  // Клик по пользователю
+  // Клик по кнопке пользователя в шапке
   const handleUserClick = () => {
     if (user) {
       setIsDropdownOpen(!isDropdownOpen);
     } else {
+      setAuthTab('login');
       setActiveModal('auth');
     }
   };
@@ -131,38 +147,80 @@ export default function Header() {
   };
 
   const displayName = user ? user.nickname || user.login : null;
-  // Проверка прав на администрирование ролей и модерацию контента
-  const canManageRoles = user && (user.role === 'owner' || user.role === 'admin');
-  const isStaff = user && (user.role === 'owner' || user.role === 'admin' || user.role === 'moderator');
+  const canManageRoles =
+    user && (user.role === 'owner' || user.role === 'admin');
+  const isStaff =
+    user &&
+    (user.role === 'owner' ||
+      user.role === 'admin' ||
+      user.role === 'moderator');
 
-  // Определение пути к аватарке или дефолтной иконке
-  const avatarSrc = user && user.avatar && user.avatar.trim() !== '' ? user.avatar : userIcon;
-  const isCustomAvatar = Boolean(user && user.avatar && user.avatar.trim() !== '');
+  const avatarSrc =
+    user && user.avatar && user.avatar.trim() !== '' ? user.avatar : userIcon;
+  const isCustomAvatar = Boolean(
+    user && user.avatar && user.avatar.trim() !== '',
+  );
+
+  // Вкладки для окна авторизации
+  const authTabs = [
+    { id: 'login', label: 'Вход' },
+    { id: 'register', label: 'Регистрация' },
+    ...(authTab === 'reset' ? [{ id: 'reset', label: 'Сброс пароля' }] : []),
+  ];
+
+  // Вкладки для окна загрузки музыки
+  const uploadTabs = [
+    { id: 'single', label: 'Сингл' },
+    { id: 'album', label: 'Альбом' },
+    { id: 'artist', label: 'Артист' },
+  ];
 
   return (
     <>
-      {/* Модальное окно авторизации */}
-      <AuthModal
+      {/* Контейнер модального окна авторизации */}
+      <Modal
         isOpen={activeModal === 'auth'}
         onClose={() => setActiveModal(null)}
-        onLoginSuccess={handleLoginSuccess}
-        initialTab="login"
-      />
+        tabs={authTabs}
+        activeTab={authTab}
+        onTabChange={setAuthTab}
+        notification={toastNotification}
+        onClearNotification={() => setToastNotification(null)}
+      >
+        <AuthModal
+          activeTab={authTab}
+          onTabChange={setAuthTab}
+          onSuccess={handleLoginSuccess}
+          onShowNotification={showNotification}
+        />
+      </Modal>
 
-      {/* Модальное окно загрузки музыки */}
-      <UploadMusicModal
+      {/* Контейнер модального окна загрузки музыки */}
+      <Modal
         isOpen={activeModal === 'upload'}
         onClose={() => setActiveModal(null)}
-        onSuccess={() => {
-          loadUnreadCount();
-        }}
-      />
+        tabs={uploadTabs}
+        activeTab={uploadTab}
+        onTabChange={setUploadTab}
+        size="wide"
+        scrollable={true}
+      >
+        <UploadMusicModal
+          uploadType={uploadTab}
+          onUploadTypeChange={setUploadTab}
+          onClose={() => setActiveModal(null)}
+          onSuccess={() => {
+            loadUnreadCount();
+          }}
+        />
+      </Modal>
 
       {/* Модальное окно уведомлений */}
       <NotificationsModal
         isOpen={activeModal === 'notifications'}
         onClose={() => setActiveModal(null)}
         onOpenUpload={() => {
+          setUploadTab('single');
           setActiveModal('upload');
         }}
       />
@@ -171,7 +229,6 @@ export default function Header() {
         <div
           className="header-title-with-logo-block"
           onClick={() => navigate('/')}
-          style={{ cursor: 'pointer' }}
         >
           <img className="header-logo" src={logo} alt="Логотип" />
           <p className="header-title">Music Platform</p>
@@ -204,7 +261,6 @@ export default function Header() {
                   <span>Профиль</span>
                 </button>
 
-                {/* Пункт управления ролями для владельца и администратора */}
                 {canManageRoles && (
                   <button
                     type="button"
